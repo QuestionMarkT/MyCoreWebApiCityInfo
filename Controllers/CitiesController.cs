@@ -1,4 +1,4 @@
-﻿namespace MyCoreWebApiCityInfo.Controllers;
+namespace MyCoreWebApiCityInfo.Controllers;
 
 [ApiController]
 public class CitiesController : ControllerBase
