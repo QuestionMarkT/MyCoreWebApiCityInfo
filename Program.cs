@@ -32,13 +32,17 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
+        
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
 
-
         app.MapControllers();
+        
+        app.Run(async (context) =>
+        {
+            await context.Response.WriteAsync("Hello W0rld!");
+        });
 
         app.Run();
     }

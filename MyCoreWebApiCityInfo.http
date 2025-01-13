@@ -1,6 +1,0 @@
-@MyCoreWebApiCityInfo_HostAddress = http://localhost:5277
-
-GET {{MyCoreWebApiCityInfo_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
