@@ -1,8 +1,11 @@
+﻿global using Microsoft.AspNetCore.Mvc;
 global using System;
+global using System.Collections.Generic;
+global using System.Linq;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,33 +18,32 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        
+        builder.Services.
+            AddControllers().Services.
+            AddEndpointsApiExplorer().
+            AddSwaggerGen();
+        
+        WebApplication app = builder.Build();
 
-        // Add services to the container.
-
-        builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
         if(app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwagger().UseSwaggerUI();
         }
-        
+
         app.UseHttpsRedirection();
-
+        app.UseRouting();
         app.UseAuthorization();
-
-        app.MapControllers();
-        
+#pragma warning disable ASP0014
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
+#pragma warning restore ASP0014
         app.Run(async (context) =>
         {
-            await context.Response.WriteAsync("Hello W0rld!");
+            await context.Response.WriteAsync("404 page not found :(");
         });
 
         app.Run();
