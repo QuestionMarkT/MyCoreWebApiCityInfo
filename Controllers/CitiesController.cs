@@ -5,7 +5,7 @@ namespace MyCoreWebApiCityInfo.Controllers;
 public class CitiesController : ControllerBase
 {
     [HttpGet]
-    public ActionResult<IEnumerable<CityDto>> GetCities(byte method)
+    public ActionResult<IEnumerable<CityDto>> GetCities()
     {
         List<CityDto> cities = CitiesDataStore.Current.Cities;
 
