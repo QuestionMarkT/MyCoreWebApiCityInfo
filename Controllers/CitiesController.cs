@@ -1,13 +1,22 @@
+using MyCoreWebApiCityInfo.Models;
 namespace MyCoreWebApiCityInfo.Controllers;
 
-[ApiController]
+[ApiController, Route("api/[controller]")]
 public class CitiesController : ControllerBase
 {
-    [HttpGet("api/cities")]
-    public JsonResult GetCities() => new(
-        new List<object>
-        {
-            new { Id = 1, Name = "New York City" },
-            new { Id = 2, Name = "Antwerp" }
-        });
+    [HttpGet]
+    public ActionResult<IEnumerable<CityDto>> GetCities(byte method)
+    {
+        List<CityDto> cities = CitiesDataStore.Current.Cities;
+
+        return cities.Count is 0 ? NoContent() : Ok(cities);
+    }
+
+    [HttpGet("{id}")]
+    public ActionResult<CityDto> GetCity(int id)
+    {
+        CityDto? result = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == id);
+        
+        return result is null ? NotFound("City not found") : Ok(result);
+    }
 }

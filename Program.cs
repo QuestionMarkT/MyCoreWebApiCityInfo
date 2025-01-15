@@ -24,7 +24,7 @@ public class Program
             AddControllers().Services.
             AddEndpointsApiExplorer().
             AddSwaggerGen();
-        
+
         WebApplication app = builder.Build();
 
         if(app.Environment.IsDevelopment())
@@ -43,6 +43,7 @@ public class Program
 #pragma warning restore ASP0014
         app.Run(async (context) =>
         {
+            context.Response.StatusCode = 404;
             await context.Response.WriteAsync("404 page not found :(");
         });
 
