@@ -19,11 +19,22 @@ public class Program
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        
         builder.Services.
-            AddControllers().Services.
+            AddControllers(options =>
+            {
+                options.ReturnHttpNotAcceptable = true;
+            }).Services.
             AddEndpointsApiExplorer().
-            AddSwaggerGen();
+            AddSwaggerGen()
+            .AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = ctx =>
+                {
+                    ctx.ProblemDetails.Extensions.Add("additionalInfo", "Additional info example");
+                    ctx.ProblemDetails.Extensions.Add("server", Environment.MachineName);
+                };
+            });
+
 
         WebApplication app = builder.Build();
 
@@ -46,7 +57,6 @@ public class Program
             context.Response.StatusCode = 404;
             await context.Response.WriteAsync("404 page not found :(");
         });
-
         app.Run();
     }
 }

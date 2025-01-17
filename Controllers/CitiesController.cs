@@ -17,6 +17,6 @@ public class CitiesController : ControllerBase
     {
         CityDto? result = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == id);
         
-        return result is null ? NotFound("City not found") : Ok(result);
+        return result is null ? NotFound("404 city not found") : Ok(result);
     }
 }
