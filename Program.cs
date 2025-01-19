@@ -16,16 +16,37 @@ namespace MyCoreWebApiCityInfo;
 
 public class Program
 {
+    static void DumbPlaygroundArea()
+    {
+        if(0 == 0.0)
+        {
+            Console.WriteLine("Same");
+        }
+        if(0 == 0M)
+        {
+            Console.WriteLine("Same again");
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("Press any key to continue...");
+        Console.ReadKey();
+    }
+
     public static void Main(string[] args)
     {
+        //DumbPlaygroundArea();
+        //return;
+        
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.Services.
-            AddControllers(options =>
+            AddControllers(opts =>
             {
-                options.ReturnHttpNotAcceptable = true;
-            }).Services.
-            AddEndpointsApiExplorer().
-            AddSwaggerGen()
+                //opts.InputFormatters.Add()
+                opts.ReturnHttpNotAcceptable = true;
+            })
+            .AddXmlDataContractSerializerFormatters()
+            .Services
+            .AddEndpointsApiExplorer()
+            .AddSwaggerGen()
             .AddProblemDetails(options =>
             {
                 options.CustomizeProblemDetails = ctx =>
@@ -34,7 +55,6 @@ public class Program
                     ctx.ProblemDetails.Extensions.Add("server", Environment.MachineName);
                 };
             });
-
 
         WebApplication app = builder.Build();
 
