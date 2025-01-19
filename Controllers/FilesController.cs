@@ -12,9 +12,11 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     [HttpGet("{fileId}")]
     public ActionResult GetFile(string fileId)
     {
+#if true
         string filePath = "blank PDF.pdf";
-        //filePath = "blank document no pw.pdf";
-
+#else
+        string filePath = "blank document no pw.pdf";
+#endif
         if(!Exists(filePath))
             return NotFound();
 
