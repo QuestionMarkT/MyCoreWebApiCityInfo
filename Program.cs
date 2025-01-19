@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -54,7 +55,8 @@ public class Program
                     ctx.ProblemDetails.Extensions.Add("additionalInfo", "Additional info example");
                     ctx.ProblemDetails.Extensions.Add("server", Environment.MachineName);
                 };
-            });
+            })
+            .AddSingleton<FileExtensionContentTypeProvider>();
 
         WebApplication app = builder.Build();
 
