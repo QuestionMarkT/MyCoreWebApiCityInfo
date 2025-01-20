@@ -7,7 +7,7 @@ namespace MyCoreWebApiCityInfo.Controllers;
 [Route("api/cities/{cityId}/[controller]"), ApiController]
 public class PointsOfInterestController : ControllerBase
 {
-    const string poiRoute = "GetPointOfInterest";
+    const string poiRoute = nameof(GetPointOfInterest);
 
     [HttpGet]
     public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
@@ -50,7 +50,7 @@ public class PointsOfInterestController : ControllerBase
             new
             {
                 cityId,
-                poiId = newPoint.Id
+                pointOfInterestId = newPoint.Id
             },
             newPoint); 
     }
