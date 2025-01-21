@@ -19,6 +19,9 @@ public class PointsOfInterestController : ControllerBase
     [HttpGet("{pointOfInterestId}", Name = poiRoute)]
     public ActionResult<PointOfInterestDto> GetPointOfInterest(int cityId, int pointOfInterestId)
     {
+        if(ModelState.IsValid is false)
+            return BadRequest();
+
         CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
 
         if(city is null)
