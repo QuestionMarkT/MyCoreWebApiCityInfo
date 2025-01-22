@@ -2,9 +2,9 @@
 
 namespace MyCoreWebApiCityInfo.Models;
 
-public class PointOfInterestForCreatonDto
+public class PointOfInterestForUpdateDto
 {
-    [Required(ErrorMessage = "Name is required"), MaxLength(50)] // https://docs.fluentvalidation.net/en/latest/ for more advanced input validation
+    [Required(ErrorMessage = "Name is required"), MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     [MaxLength(200)]
     public string? Description { get; set; }

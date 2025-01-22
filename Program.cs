@@ -19,14 +19,8 @@ public class Program
 {
     static void DumbPlaygroundArea()
     {
-        if(0 == 0.0)
-        {
-            Console.WriteLine("Same");
-        }
-        if(0 == 0M)
-        {
-            Console.WriteLine("Same again");
-        }
+        
+
         Console.ForegroundColor = ConsoleColor.Green;
         Console.Write("Press any key to continue...");
         Console.ReadKey();

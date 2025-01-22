@@ -16,7 +16,7 @@ public class PointsOfInterestController : ControllerBase
         return city is null ? NotFound("404 city not found") : Ok(city.PointsOfInterest);
     }
 
-    [HttpGet("{pointOfInterestId}", Name = poiRoute)]
+    [HttpGet($"{{{nameof(pointOfInterestId)}}}", Name = poiRoute)]
     public ActionResult<PointOfInterestDto> GetPointOfInterest(int cityId, int pointOfInterestId)
     {
         if(ModelState.IsValid is false)
@@ -56,5 +56,22 @@ public class PointsOfInterestController : ControllerBase
                 pointOfInterestId = newPoint.Id
             },
             newPoint); 
+    }
+
+    [HttpPut($"{{{nameof(poiIdFromUser)}}}")]
+    public ActionResult UpdatePointOfInterest(int cityId, int poiIdFromUser, PointOfInterestForUpdateDto poiFromUser) 
+    {
+        CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
+        if(city is null)
+            return NotFound("404 city not found");
+
+        PointOfInterestDto? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiIdFromUser);
+        if(poiFromMemory is null)
+            return NotFound("404 point of interest not found");
+
+        poiFromMemory.Name = poiFromUser.Name;
+        poiFromMemory.Description = poiFromUser.Description;
+        
+        return NoContent();
     }
 }
