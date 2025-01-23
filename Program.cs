@@ -28,6 +28,7 @@ public class Program
 
     public static void Main(string[] args)
     {
+
         //DumbPlaygroundArea();
         //return;
         
@@ -38,6 +39,7 @@ public class Program
                 //opts.InputFormatters.Add()
                 opts.ReturnHttpNotAcceptable = true;
             })
+            .AddNewtonsoftJson()
             .AddXmlDataContractSerializerFormatters()
             .Services
             .AddEndpointsApiExplorer()
