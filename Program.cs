@@ -1,5 +1,6 @@
 global using Microsoft.AspNetCore.Mvc;
 global using System;
+global using System.Collections;
 global using System.Collections.Generic;
 global using System.Linq;
 using Microsoft.AspNetCore.Builder;
@@ -12,15 +13,40 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.StaticFiles;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 
 namespace MyCoreWebApiCityInfo;
 
 public class Program
 {
+    static decimal Compute(int value)
+    {
+        int randomMiliseconds = Random.Shared.Next(10, 50);
+        DateTime end = DateTime.Now + TimeSpan.FromMilliseconds(randomMiliseconds);
+
+        while(DateTime.Now < end)
+        { }
+
+        return value + 0.5M;
+    }
+
     static void DumbPlaygroundArea()
     {
+        Stopwatch sw = Stopwatch.StartNew();
+        decimal result = ParallelEnumerable.Range(0, 100)
+            .Select(Compute)
+            .Sum();
         
-
+        Console.WriteLine(result);
+        Console.WriteLine($"It took {sw.ElapsedMilliseconds} ms to run");
+        
         Console.ForegroundColor = ConsoleColor.Green;
         Console.Write("Press any key to continue...");
         Console.ReadKey();
@@ -28,7 +54,6 @@ public class Program
 
     public static void Main(string[] args)
     {
-
         //DumbPlaygroundArea();
         //return;
         
