@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
 using MyCoreWebApiCityInfo.Models;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using static System.IO.File;
 
 namespace MyCoreWebApiCityInfo.Controllers;
@@ -47,6 +50,22 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
 
         byte[] fileBytes = ReadAllBytes(filePath);
         return File(fileBytes, contentType, Path.GetFileName(filePath));
+    }
+    
+    [HttpPost]
+    public async Task<ActionResult> CreateFile(IFormFile file)
+    {
+        if(file.Length == 0 || file.Length > 100 * 1024 * 1024 || file.ContentType != "application/pdf")
+        {
+            return BadRequest("No file or an invalid one has been provided");
+        }
+
+        string newFilePath = Path.Join(Directory.GetCurrentDirectory(), $"uploaded file {Guid.NewGuid()}.pdf");
+        using FileStream fstream = new(newFilePath, FileMode.Create);
+        CancellationTokenSource ct = new(TimeSpan.FromMinutes(5));
+        await file.CopyToAsync(fstream, ct.Token);
+
+        return Ok("File has been uploaded");
     }
 }
 
