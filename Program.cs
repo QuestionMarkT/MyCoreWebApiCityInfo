@@ -26,6 +26,7 @@ namespace MyCoreWebApiCityInfo;
 
 public class Program
 {
+    #region unrelated testing playground area
     static decimal Compute(int value)
     {
         int randomMiliseconds = Random.Shared.Next(10, 50);
@@ -51,15 +52,14 @@ public class Program
         Console.Write("Press any key to continue...");
         Console.ReadKey();
     }
-
+    #endregion
     public static void Main(string[] args)
     {
         //DumbPlaygroundArea();
         //return;
         
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        builder.Services.
-            AddControllers(opts =>
+        builder.Services.AddControllers(opts =>
             {
                 //opts.InputFormatters.Add()
                 opts.ReturnHttpNotAcceptable = true;
@@ -79,8 +79,8 @@ public class Program
             })
             .AddSingleton<FileExtensionContentTypeProvider>();
 
-        WebApplication app = builder.Build();
-
+        using WebApplication app = builder.Build();
+        
         if(app.Environment.IsDevelopment())
         {
             app.UseSwagger().UseSwaggerUI();
