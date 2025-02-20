@@ -2,14 +2,11 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using MyCoreWebApiCityInfo.Models;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.IO.File;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MyCoreWebApiCityInfo.Controllers;
 
@@ -82,22 +79,25 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpGet]
     public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
     {
-        CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
-
-        if(city is null)
+            throw new Exception("Ëxception sample");
+        try
         {
-            //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
-            _logger.Log(LogLevel.None, "awdwad");
-            _logger.LogTrace($"City ID {cityId} wasn't found when accessing points of interest.");
-            _logger.LogDebug($"City ID {cityId} wasn't found when accessing points of interest.");
-            _logger.LogInformation($"City ID {cityId} wasn't found when accessing points of interest.");
-            _logger.LogWarning($"City ID {cityId} wasn't found when accessing points of interest.");
-            _logger.LogError($"City ID {cityId} wasn't found when accessing points of interest.");
-            _logger.LogCritical($"City ID {cityId} wasn't found when accessing points of interest.");
-            return NotFound("404 city not found");
-        }
+            CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
 
-        return Ok(city.PointsOfInterest);
+            if(city is null)
+            {
+                //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
+                _logger.LogInformation($"City ID {cityId} wasn't found when accessing points of interest.");
+                return NotFound("404 city not found");
+            }
+
+            return Ok(city.PointsOfInterest);
+        }
+        catch(Exception e)
+        {
+            _logger.LogCritical($"CITY ID {cityId} throwed an error: {e.Message}", e);
+            return StatusCode(500, $"A server side problem has occured at {DateTime.UtcNow}.");
+        }
     }
 
     [HttpGet($"{{{nameof(pointOfInterestId)}}}", Name = poiRoute)]

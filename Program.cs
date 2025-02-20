@@ -21,6 +21,8 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -80,16 +82,21 @@ public class Program
             .AddSingleton<FileExtensionContentTypeProvider>();
 
         using WebApplication app = builder.Build();
-        
+
+        if(!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler();
+        }
+
         if(app.Environment.IsDevelopment())
         {
             app.UseSwagger().UseSwaggerUI();
         }
-
+        
         app.UseHttpsRedirection();
         app.UseRouting();
         app.UseAuthorization();
-#pragma warning disable ASP0014
+#pragma warning disable ASP0014 // idk why but in the course it is at it is
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
