@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.StaticFiles;
+using MyCoreWebApiCityInfo.Services;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,13 +63,12 @@ public class Program
         //return;
 
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
+            .MinimumLevel.Information()
             .WriteTo.Console()
             .WriteTo.File("logs/city info.log", rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        builder.Logging.ClearProviders();
         builder.Host.UseSerilog();
         builder.Services.AddControllers(opts =>
             {
@@ -88,7 +88,8 @@ public class Program
                     ctx.ProblemDetails.Extensions.Add("server", Environment.MachineName);
                 };
             })
-            .AddSingleton<FileExtensionContentTypeProvider>();
+            .AddSingleton<FileExtensionContentTypeProvider>()
+            .AddTransient<LocalMail>();
 
         using WebApplication app = builder.Build();
 

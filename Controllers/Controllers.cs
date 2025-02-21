@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using MyCoreWebApiCityInfo.Models;
+using MyCoreWebApiCityInfo.Services;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,15 +72,15 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
 }
 
 [Route("api/cities/{cityId}/[controller]"), ApiController]
-public class PointsOfInterestController(ILogger<PointsOfInterestController> logger) : ControllerBase
+public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, LocalMail localMail) : ControllerBase
 {
     readonly ILogger<PointsOfInterestController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    readonly LocalMail mailSrv = localMail ?? throw new ArgumentNullException(nameof(localMail));
     const string poiRoute = nameof(GetPointOfInterest);
 
     [HttpGet]
     public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
     {
-        throw new Exception("Ëxception sample");
         try
         {
             CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
@@ -87,7 +88,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
             if(city is null)
             {
                 //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
-                _logger.LogInformation($"City ID {cityId} wasn't found when accessing points of interest.");
+                _logger.LogInformation("City ID {cityId} wasn't found when accessing points of interest.", cityId);
                 return NotFound("404 city not found");
             }
 
@@ -95,7 +96,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
         }
         catch(Exception e)
         {
-            _logger.LogCritical($"CITY ID {cityId} throwed an error: {e.Message}", e);
+            _logger.LogCritical("CITY ID {cityId} threw an error: {Message}", cityId, e.Message);
             return StatusCode(500, $"A server side problem has occured at {DateTime.UtcNow}.");
         }
     }
@@ -195,17 +196,18 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     }
 
     [HttpDelete($"{{{nameof(poiId)}}}")]
-    public ActionResult DeletePointOfInterest(int cityId, int poiId)
+    public IActionResult DeletePointOfInterest(int cityId, int poiId)
     {
         CityDto? cityDto = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
         if(cityDto is null)
             return NotFound();
-
+        
         PointOfInterestDto? poiDtoFromMemory = cityDto.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
         if(poiDtoFromMemory is null)
             return NotFound();
 
         cityDto.PointsOfInterest.Remove(poiDtoFromMemory);
+        mailSrv.Send("Poi deleted", $"Point of interest {poiDtoFromMemory.Name} with id {poiDtoFromMemory.Id} has been deleted.");
         return NoContent();
     }
 }
