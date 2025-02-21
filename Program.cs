@@ -23,6 +23,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Serilog;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -59,8 +60,16 @@ public class Program
     {
         //DumbPlaygroundArea();
         //return;
-        
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.File("logs/city info.log", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
+
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        builder.Logging.ClearProviders();
+        builder.Host.UseSerilog();
         builder.Services.AddControllers(opts =>
             {
                 //opts.InputFormatters.Add()

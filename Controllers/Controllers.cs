@@ -79,7 +79,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpGet]
     public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
     {
-            throw new Exception("Ëxception sample");
+        throw new Exception("Ëxception sample");
         try
         {
             CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
