@@ -89,7 +89,12 @@ public class Program
                 };
             })
             .AddSingleton<FileExtensionContentTypeProvider>()
-            .AddTransient<LocalMail>();
+#if DEBUG
+            .AddTransient<IMail, LocalMail>()
+#else
+            .AddTransient<IMail, CloudMail>()
+#endif
+            .AddSingleton<CitiesDataStore>();
 
         using WebApplication app = builder.Build();
 

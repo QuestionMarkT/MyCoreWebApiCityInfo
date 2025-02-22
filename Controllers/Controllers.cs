@@ -12,12 +12,13 @@ using static System.IO.File;
 namespace MyCoreWebApiCityInfo.Controllers;
 
 [Route("api/[controller]"), ApiController]
-public class CitiesController : ControllerBase
+public class CitiesController(CitiesDataStore __cds) : ControllerBase
 {
+    readonly CitiesDataStore _citiesDataStore = __cds ?? throw new ArgumentNullException(nameof(__cds));
     [HttpGet]
     public ActionResult<IEnumerable<CityDto>> GetCities()
     {
-        List<CityDto> cities = CitiesDataStore.Current.Cities;
+        List<CityDto> cities = _citiesDataStore.Cities;
 
         return cities.Count is 0 ? NoContent() : Ok(cities);
     }
@@ -25,7 +26,7 @@ public class CitiesController : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<CityDto> GetCity(int id)
     {
-        CityDto? result = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == id);
+        CityDto? result = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == id);
 
         return result is null ? NotFound("404 city not found") : Ok(result);
     }
@@ -72,10 +73,11 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
 }
 
 [Route("api/cities/{cityId}/[controller]"), ApiController]
-public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, LocalMail localMail) : ControllerBase
+public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, CitiesDataStore __cds) : ControllerBase
 {
     readonly ILogger<PointsOfInterestController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    readonly LocalMail mailSrv = localMail ?? throw new ArgumentNullException(nameof(localMail));
+    readonly IMail _mailSrv = localMail ?? throw new ArgumentNullException(nameof(localMail));
+    readonly CitiesDataStore _citiesDataStore = __cds ?? throw new ArgumentNullException(nameof(__cds));
     const string poiRoute = nameof(GetPointOfInterest);
 
     [HttpGet]
@@ -83,7 +85,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     {
         try
         {
-            CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
+            CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
 
             if(city is null)
             {
@@ -107,7 +109,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
         if(ModelState.IsValid is false)
             return BadRequest();
 
-        CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
+        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
 
         if(city is null)
             return NotFound("404 city not found");
@@ -119,12 +121,12 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpPost]
     public ActionResult<PointOfInterestDto> CreatePointOfInterest(int cityId, [FromBody] PointOfInterestForCreatonDto poi)
     {
-        CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
 
         if(city is null)
             return NotFound();
 
-        int maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(x => x.PointsOfInterest).Max(x => x.Id); // a temporary solution that will stay here for good
+        int maxPointOfInterestId = _citiesDataStore.Cities.SelectMany(x => x.PointsOfInterest).Max(x => x.Id); // a temporary solution that will stay here for good
 
         PointOfInterestDto newPoint = new()
         {
@@ -146,7 +148,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpPut($"{{{nameof(poiIdFromUser)}}}")]
     public ActionResult UpdatePointOfInterest(int cityId, int poiIdFromUser, PointOfInterestForUpdateDto poiFromUser)
     {
-        CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
+        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
         if(city is null)
             return NotFound("404 city not found");
 
@@ -163,7 +165,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpPatch($"{{{nameof(poiId)}}}")]
     public ActionResult PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
     {
-        CityDto? city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
+        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
         if(city is null)
             return NotFound($"city ID {cityId} not found");
 
@@ -198,7 +200,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpDelete($"{{{nameof(poiId)}}}")]
     public IActionResult DeletePointOfInterest(int cityId, int poiId)
     {
-        CityDto? cityDto = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+        CityDto? cityDto = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
         if(cityDto is null)
             return NotFound();
         
@@ -207,7 +209,7 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
             return NotFound();
 
         cityDto.PointsOfInterest.Remove(poiDtoFromMemory);
-        mailSrv.Send("Poi deleted", $"Point of interest {poiDtoFromMemory.Name} with id {poiDtoFromMemory.Id} has been deleted.");
+        _mailSrv.Send("Poi deleted", $"Point of interest {poiDtoFromMemory.Name} with id {poiDtoFromMemory.Id} has been deleted.");
         return NoContent();
     }
 }
