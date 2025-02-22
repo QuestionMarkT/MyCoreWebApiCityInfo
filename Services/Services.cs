@@ -1,14 +1,16 @@
-﻿namespace MyCoreWebApiCityInfo.Services;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace MyCoreWebApiCityInfo.Services;
 
 public interface IMail
 {
     void Send(string subject, string body);
 }
 
-public class LocalMail : IMail
+public class LocalMail(IConfiguration config) : IMail
 {
-    const string _mailTo = "admin@mycompany.com";
-    const string _mailFrom = "noreply@mycompany.com";
+    readonly string _mailTo = config["mailSettings:mailToAddress"] ?? throw new ArgumentNullException(nameof(config));
+    readonly string _mailFrom = config["mailSettings:mailFromAddress"] ?? throw new ArgumentNullException(nameof(config));
 
     public void Send(string subject, string body)
     {
@@ -20,10 +22,10 @@ public class LocalMail : IMail
     }
 }
 
-public class CloudMail : IMail
+public class CloudMail(IConfiguration config) : IMail
 {
-    const string _mailTo = "admin@mycompany.com";
-    const string _mailFrom = "noreply@mycompany.com";
+    readonly string _mailTo = config["mailSettings:mailToAddress"] ?? throw new ArgumentNullException(nameof(config));
+    readonly string _mailFrom = config["mailSettings:mailFromAddress"] ?? throw new ArgumentNullException(nameof(config));
 
     public void Send(string subject, string body)
     {
