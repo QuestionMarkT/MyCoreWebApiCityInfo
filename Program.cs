@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.StaticFiles;
+using MyCoreWebApiCityInfo.DbContexts;
 using MyCoreWebApiCityInfo.Services;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -25,33 +26,21 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Serilog;
+using System.Numerics;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Wasm;
+using System.Runtime.Intrinsics.X86;
+using System.Dynamic;
+using Microsoft.EntityFrameworkCore;
 
 namespace MyCoreWebApiCityInfo;
 
 public class Program
 {
     #region unrelated testing playground area
-    static decimal Compute(int value)
-    {
-        int randomMiliseconds = Random.Shared.Next(10, 50);
-        DateTime end = DateTime.Now + TimeSpan.FromMilliseconds(randomMiliseconds);
-
-        while(DateTime.Now < end)
-        { }
-
-        return value + 0.5M;
-    }
-
     static void DumbPlaygroundArea()
     {
-        Stopwatch sw = Stopwatch.StartNew();
-        decimal result = ParallelEnumerable.Range(0, 100)
-            .Select(Compute)
-            .Sum();
-        
-        Console.WriteLine(result);
-        Console.WriteLine($"It took {sw.ElapsedMilliseconds} ms to run");
-        
+
         Console.ForegroundColor = ConsoleColor.Green;
         Console.Write("Press any key to continue...");
         Console.ReadKey();
@@ -94,7 +83,12 @@ public class Program
 #else
             .AddTransient<IMail, CloudMail>()
 #endif
-            .AddSingleton<CitiesDataStore>();
+            .AddSingleton<CitiesDataStore>()
+            .AddDbContext<CityInfoContext>();
+            //.AddDbContext<CityInfoContext>(dbco =>
+            //{
+            //    dbco.UseSqlite();
+            //});
 
         using WebApplication app = builder.Build();
 
