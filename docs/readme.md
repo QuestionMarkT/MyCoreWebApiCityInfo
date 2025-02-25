@@ -5,6 +5,7 @@
 
 - [x] ASP.NET Core
 - [x] Web API
+- [x] Entity Framework Core
 - [ ] Minimal API
 
 > [!WARNING]
