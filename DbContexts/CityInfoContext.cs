@@ -12,7 +12,6 @@ public class CityInfoContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlite("Data Source=CityInfo.db");
-        Console.WriteLine("It worked! Db configure fired out!");
         base.OnConfiguring(optionsBuilder);
     }
 }
