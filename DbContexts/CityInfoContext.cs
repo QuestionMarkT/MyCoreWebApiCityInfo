@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyCoreWebApiCityInfo.DbContexts;
 
-public class CityInfoContext : DbContext
+public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbContext(options)
 {
+    //readonly IConfiguration configuration = _config ?? throw new ArgumentNullException(nameof(_config));
     public DbSet<City> Cities { get; set; }
+    
     public DbSet<PointOfInterest> PointsOfInterest { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -70,10 +72,13 @@ public class CityInfoContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    // OTHER METHOD CREATING A DBCONTEXT CONNECTION
+    // OTHER WAY OF CREATING A DBCONTEXT CONNECTION
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite("Data Source=CityInfo.db");
-        base.OnConfiguring(optionsBuilder);
+        if(optionsBuilder.IsConfigured)
+            Console.WriteLine("Connection string is already configured");
+        
+        //else
+        //    optionsBuilder.UseSqlite(configuration.GetConnectionString("CityInfoDBConnectionString"));
     }
 }

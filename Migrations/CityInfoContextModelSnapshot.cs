@@ -33,7 +33,7 @@ namespace MyCoreWebApiCityInfo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
 
                     b.HasData(
                         new
@@ -78,7 +78,7 @@ namespace MyCoreWebApiCityInfo.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.ToTable("PointsOfInterest");
+                    b.ToTable("PointsOfInterest", (string)null);
 
                     b.HasData(
                         new

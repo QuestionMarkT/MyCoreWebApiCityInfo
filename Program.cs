@@ -50,7 +50,7 @@ public class Program
     {
         //DumbPlaygroundArea();
         //return;
-
+        
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .WriteTo.Console()
@@ -84,11 +84,10 @@ public class Program
             .AddTransient<IMail, CloudMail>()
 #endif
             .AddSingleton<CitiesDataStore>()
-            .AddDbContext<CityInfoContext>();
-            //.AddDbContext<CityInfoContext>(dbco =>
-            //{
-            //    dbco.UseSqlite();
-            //});
+            .AddDbContext<CityInfoContext>(opts =>
+            {
+                opts.UseSqlite(builder.Configuration.GetConnectionString("CityInfoDBConnectionString"));
+            });
 
         using WebApplication app = builder.Build();
 
@@ -96,7 +95,7 @@ public class Program
         {
             app.UseExceptionHandler();
         }
-
+        
         if(app.Environment.IsDevelopment())
         {
             app.UseSwagger().UseSwaggerUI();
