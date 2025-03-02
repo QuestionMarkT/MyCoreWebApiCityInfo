@@ -12,6 +12,7 @@ public interface ICityInfoRepository
     Task<CityDbEntity?> GetCity(int cityId, bool includePoi);
     IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId);
     Task<PointOfInterestDBEntity?> GetPointOfInterestForCity(int cityId, int poiId);
+    Task<bool> CityExists(int cityId);
 }
 
 public interface IMail
@@ -43,8 +44,10 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
             .FirstOrDefaultAsync();
 
     public IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId) => _context.PointsOfInterest
-        .Where(x => x.Id == cityId)
+        .Where(x => x.City != null && x.City.Id == cityId)
         .AsAsyncEnumerable();
+
+    public async Task<bool> CityExists(int cityId) => await _context.Cities.AnyAsync(x => x.Id == cityId);
 }
 
 public class LocalMail(IConfiguration config) : IMail

@@ -84,51 +84,55 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
 }
 
 [Route("api/cities/{cityId}/[controller]"), ApiController]
-public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, CitiesDataStore __cds) : ControllerBase
+public class PointsOfInterestController(
+    ILogger<PointsOfInterestController> logger,
+    IMail localMail,
+    ICityInfoRepository __cds) : ControllerBase
 {
-    readonly ILogger<PointsOfInterestController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    readonly IMail _mailSrv = localMail ?? throw new ArgumentNullException(nameof(localMail));
-    readonly CitiesDataStore _citiesDataStore = __cds ?? throw new ArgumentNullException(nameof(__cds));
+    readonly ILogger<PointsOfInterestController> _logger = logger ??
+        throw new ArgumentNullException(nameof(logger));
+
+    readonly IMail _mailSrv = localMail ??
+        throw new ArgumentNullException(nameof(localMail));
+
+    readonly ICityInfoRepository _citiesDataStore = __cds ??
+        throw new ArgumentNullException(nameof(__cds));
+
     const string poiRoute = nameof(GetPointOfInterest);
 
     [HttpGet]
-    public ActionResult<IEnumerable<PointOfInterest>> GetPointsOfInterest(int cityId)
+    public async Task<ActionResult<IEnumerable<PointOfInterest>>> GetPointsOfInterest(int cityId)
     {
-        try
+        if(!await _citiesDataStore.CityExists(cityId))
         {
-            City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
-
-            if(city is null)
-            {
-                //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
-                _logger.LogInformation("City ID {cityId} wasn't found when accessing points of interest.", cityId);
-                return NotFound("404 city not found");
-            }
-
-            return Ok(city.PointsOfInterest);
+            //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
+            _logger.LogInformation("City ID {cityId} wasn't found when accessing points of interest.", cityId);
+            return NotFound($"404 city ID {cityId} not found");
         }
-        catch(Exception e)
-        {
-            _logger.LogCritical("CITY ID {cityId} threw an error: {Message}", cityId, e.Message);
-            return StatusCode(500, $"A server side problem has occured at {DateTime.UtcNow}.");
-        }
+
+        List<PointOfInterest> result = [];
+        
+        await foreach(PointOfInterestDBEntity poiDbEnt in _citiesDataStore.GetPointsOfInterestsForCity(cityId))
+            result.Add(poiDbEnt);
+
+        return Ok(result);
     }
 
     [HttpGet($"{{{nameof(pointOfInterestId)}}}", Name = poiRoute)]
-    public ActionResult<PointOfInterest> GetPointOfInterest(int cityId, int pointOfInterestId)
+    public async Task<ActionResult<PointOfInterest>> GetPointOfInterest(int cityId, int pointOfInterestId)
     {
-        if(ModelState.IsValid is false)
+        if(!ModelState.IsValid)
             return BadRequest();
 
-        City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+        PointOfInterestDBEntity? poiDbEnt = await _citiesDataStore.GetPointOfInterestForCity(cityId, pointOfInterestId);
 
-        if(city is null)
-            return NotFound("404 city not found");
-
-        PointOfInterest? poi = city.PointsOfInterest.FirstOrDefault(x => x.Id == pointOfInterestId);
-        return poi is null ? NotFound("404 point of interest not found") : Ok(poi);
+        if(poiDbEnt is null)
+            return NotFound("404 point of interest or city not found");
+        
+        return Ok((PointOfInterest)poiDbEnt);
     }
 
+    /* FIXING SKIPPED IN THE COURSE
     [HttpPost]
     public ActionResult<PointOfInterest> CreatePointOfInterest(int cityId, [FromBody] PointOfInterestForCreatonDto poi)
     {
@@ -222,5 +226,5 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
         cityDto.PointsOfInterest.Remove(poiDtoFromMemory);
         _mailSrv.Send("Poi deleted", $"Point of interest {poiDtoFromMemory.Name} with id {poiDtoFromMemory.Id} has been deleted.");
         return NoContent();
-    }
+    }*/
 }
