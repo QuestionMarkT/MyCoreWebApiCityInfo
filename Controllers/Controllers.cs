@@ -15,27 +15,32 @@ namespace MyCoreWebApiCityInfo.Controllers;
 [Route("api/[controller]"), ApiController]
 public class CitiesController(ICityInfoRepository __cityInfoRepository) : ControllerBase
 {
-    readonly ICityInfoRepository _ciRepo = __cityInfoRepository ?? throw new ArgumentNullException(nameof(__cityInfoRepository));
+    readonly ICityInfoRepository _ciRepo = __cityInfoRepository ??
+        throw new ArgumentNullException(nameof(__cityInfoRepository));
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CityWithoutPoiDto>>> GetCities()
+    public async Task<ActionResult<IEnumerable<CityWithoutPoi>>> GetCities()
     {
-        List<CityWithoutPoiDto> result = [];
-        await foreach(City? city in _ciRepo.GetCities())
-        {
-            result.Add((CityWithoutPoiDto) city);
-        }
+        List<CityWithoutPoi> result = [];
 
+        await foreach(CityDbEntity? city in _ciRepo.GetCities())
+            result.Add((CityWithoutPoi) city);
+        
         return result.Count > 0 ? Ok(result) : NoContent();
     }
 
-    //[HttpGet("{id}")]
-    //public ActionResult<CityDto> GetCity(int id)
-    //{
-    //    CityDto? result = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == id);
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCity(int id, [FromQuery] bool includePoi = false)
+    {
+        CityDbEntity? cityDbEntity =  await _ciRepo.GetCity(id, includePoi);
 
-    //    return result is null ? NotFound("404 city not found") : Ok(result);
-    //}
+        if(cityDbEntity is null)
+            return NotFound("404 city not found");
+        else if(includePoi)
+            return Ok((City) cityDbEntity);
+        else
+            return Ok((CityWithoutPoi) cityDbEntity);
+    }
 }
 
 [Route("api/[controller]"), ApiController]
@@ -87,11 +92,11 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     const string poiRoute = nameof(GetPointOfInterest);
 
     [HttpGet]
-    public ActionResult<IEnumerable<PointOfInterestDto>> GetPointsOfInterest(int cityId)
+    public ActionResult<IEnumerable<PointOfInterest>> GetPointsOfInterest(int cityId)
     {
         try
         {
-            CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+            City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
 
             if(city is null)
             {
@@ -110,31 +115,31 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     }
 
     [HttpGet($"{{{nameof(pointOfInterestId)}}}", Name = poiRoute)]
-    public ActionResult<PointOfInterestDto> GetPointOfInterest(int cityId, int pointOfInterestId)
+    public ActionResult<PointOfInterest> GetPointOfInterest(int cityId, int pointOfInterestId)
     {
         if(ModelState.IsValid is false)
             return BadRequest();
 
-        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+        City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
 
         if(city is null)
             return NotFound("404 city not found");
 
-        PointOfInterestDto? poi = city.PointsOfInterest.FirstOrDefault(x => x.Id == pointOfInterestId);
+        PointOfInterest? poi = city.PointsOfInterest.FirstOrDefault(x => x.Id == pointOfInterestId);
         return poi is null ? NotFound("404 point of interest not found") : Ok(poi);
     }
 
     [HttpPost]
-    public ActionResult<PointOfInterestDto> CreatePointOfInterest(int cityId, [FromBody] PointOfInterestForCreatonDto poi)
+    public ActionResult<PointOfInterest> CreatePointOfInterest(int cityId, [FromBody] PointOfInterestForCreatonDto poi)
     {
-        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
+        City? city = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
 
         if(city is null)
             return NotFound();
 
         int maxPointOfInterestId = _citiesDataStore.Cities.SelectMany(x => x.PointsOfInterest).Max(x => x.Id); // a temporary solution that will stay here for good
 
-        PointOfInterestDto newPoint = new()
+        PointOfInterest newPoint = new()
         {
             Id = ++maxPointOfInterestId,
             Name = poi.Name,
@@ -154,11 +159,11 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpPut($"{{{nameof(poiIdFromUser)}}}")]
     public ActionResult UpdatePointOfInterest(int cityId, int poiIdFromUser, PointOfInterestForUpdateDto poiFromUser)
     {
-        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+        City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
         if(city is null)
             return NotFound("404 city not found");
 
-        PointOfInterestDto? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiIdFromUser);
+        PointOfInterest? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiIdFromUser);
         if(poiFromMemory is null)
             return NotFound("404 point of interest not found");
 
@@ -171,11 +176,11 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpPatch($"{{{nameof(poiId)}}}")]
     public ActionResult PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
     {
-        CityDto? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+        City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
         if(city is null)
             return NotFound($"city ID {cityId} not found");
 
-        PointOfInterestDto? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
+        PointOfInterest? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
         if(poiFromMemory is null)
             return NotFound($"point of interest of ID {poiId} not found");
 
@@ -206,11 +211,11 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpDelete($"{{{nameof(poiId)}}}")]
     public IActionResult DeletePointOfInterest(int cityId, int poiId)
     {
-        CityDto? cityDto = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
+        City? cityDto = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
         if(cityDto is null)
             return NotFound();
         
-        PointOfInterestDto? poiDtoFromMemory = cityDto.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
+        PointOfInterest? poiDtoFromMemory = cityDto.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
         if(poiDtoFromMemory is null)
             return NotFound();
 

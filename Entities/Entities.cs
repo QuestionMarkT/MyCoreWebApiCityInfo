@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyCoreWebApiCityInfo.Entities;
 
-public class City(string name)
+public class CityDbEntity(string name)
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
@@ -14,10 +14,10 @@ public class City(string name)
 
     [MaxLength(200)]
     public string? Description { get; set; }
-    public ICollection<PointOfInterest> PointsOfInterest { get; set; } = [];
+    public ICollection<PointOfInterestDBEntity> PointsOfInterest { get; set; } = [];
 }
 
-public class PointOfInterest(string name)
+public class PointOfInterestDBEntity(string name)
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
@@ -29,6 +29,6 @@ public class PointOfInterest(string name)
     public string? Description { get; set; }
 
     [ForeignKey(nameof(CityId))]
-    public City? City { get; set; }
+    public CityDbEntity? City { get; set; }
     public int CityId { get; set; }
 }

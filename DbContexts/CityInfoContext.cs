@@ -6,13 +6,13 @@ namespace MyCoreWebApiCityInfo.DbContexts;
 public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbContext(options)
 {
     //readonly IConfiguration configuration = _config ?? throw new ArgumentNullException(nameof(_config));
-    public DbSet<City> Cities { get; set; }
+    public DbSet<CityDbEntity> Cities { get; set; }
     
-    public DbSet<PointOfInterest> PointsOfInterest { get; set; }
+    public DbSet<PointOfInterestDBEntity> PointsOfInterest { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<City>()
+        modelBuilder.Entity<CityDbEntity>()
             .HasData(
             new("New York City")
             {
@@ -30,7 +30,7 @@ public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbCont
                 Description = "The one with that big tower."
             });
 
-        modelBuilder.Entity<PointOfInterest>()
+        modelBuilder.Entity<PointOfInterestDBEntity>()
             .HasData(
             new("Central Park")
             {

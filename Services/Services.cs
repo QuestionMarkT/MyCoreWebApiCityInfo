@@ -8,10 +8,10 @@ namespace MyCoreWebApiCityInfo.Services;
 
 public interface ICityInfoRepository
 {
-    IAsyncEnumerable<City> GetCities();
-    Task<City?> GetCity(int cityId, bool includePoi);
-    IAsyncEnumerable<PointOfInterest> GetPointsOfInterestsForCity(int cityId);
-    Task<PointOfInterest?> GetPointOfInterestForCity(int cityId, int poiId);
+    IAsyncEnumerable<CityDbEntity> GetCities();
+    Task<CityDbEntity?> GetCity(int cityId, bool includePoi);
+    IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId);
+    Task<PointOfInterestDBEntity?> GetPointOfInterestForCity(int cityId, int poiId);
 }
 
 public interface IMail
@@ -23,9 +23,9 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
 {
     readonly CityInfoContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public IAsyncEnumerable<City> GetCities() => _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
+    public IAsyncEnumerable<CityDbEntity> GetCities() => _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
 
-    public async Task<City?> GetCity(int cityId, bool includePoi = false)
+    public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi)
     {
         if(includePoi)
             return await _context.Cities
@@ -38,11 +38,11 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
                 .FirstOrDefaultAsync();
     }
 
-    public async Task<PointOfInterest?> GetPointOfInterestForCity(int cityId, int poiId) => await _context.PointsOfInterest
+    public async Task<PointOfInterestDBEntity?> GetPointOfInterestForCity(int cityId, int poiId) => await _context.PointsOfInterest
             .Where(x => x.CityId == cityId && x.Id == poiId)
             .FirstOrDefaultAsync();
 
-    public IAsyncEnumerable<PointOfInterest> GetPointsOfInterestsForCity(int cityId) => _context.PointsOfInterest
+    public IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId) => _context.PointsOfInterest
         .Where(x => x.Id == cityId)
         .AsAsyncEnumerable();
 }

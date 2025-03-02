@@ -89,7 +89,7 @@ public class Program
                 opts.UseSqlite(builder.Configuration.GetConnectionString("CityInfoDBConnectionString"));
             })
             .AddScoped<ICityInfoRepository, CityInfoRepository>();
-
+        
         using WebApplication app = builder.Build();
 
         if(!app.Environment.IsDevelopment())

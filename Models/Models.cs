@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyCoreWebApiCityInfo.Models;
 
-public class CityWithoutPoiDto
+public class CityWithoutPoi
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    public static explicit operator CityWithoutPoiDto(City cityDto) => new()
+    public static explicit operator CityWithoutPoi(CityDbEntity cityDto) => new()
     {
         Id = cityDto.Id,
         Name = cityDto.Name,
@@ -17,13 +17,29 @@ public class CityWithoutPoiDto
     };
 }
 
-public class CityDto
+public class City
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int NumberOfPointsOfInterest { get => PointsOfInterest.Count; }
-    public ICollection<PointOfInterestDto> PointsOfInterest { get; set; } = [];
+    public ICollection<PointOfInterest> PointsOfInterest { get; set; } = [];
+
+    public static implicit operator City(CityDbEntity sourceCity)
+    {
+        City castedCity = new()
+        {
+            Id = sourceCity.Id,
+            Name = sourceCity.Name,
+            Description = sourceCity.Description,
+            PointsOfInterest = sourceCity.PointsOfInterest
+                .Select(x => (PointOfInterest) x)
+                .ToArray()
+        };
+
+        return castedCity;
+    }
+    
 }
 public class PointOfInterestForUpdateDto
 {
@@ -39,9 +55,16 @@ public class PointOfInterestForCreatonDto
     [MaxLength(200)]
     public string? Description { get; set; }
 }
-public class PointOfInterestDto
+public class PointOfInterest
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+
+    public static implicit operator PointOfInterest(PointOfInterestDBEntity dbEnt) => new()
+    {
+        Id = dbEnt.Id,
+        Name = dbEnt.Name,
+        Description = dbEnt.Description
+    };
 }
