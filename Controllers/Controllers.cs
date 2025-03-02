@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
+using MyCoreWebApiCityInfo.Entities;
 using MyCoreWebApiCityInfo.Models;
 using MyCoreWebApiCityInfo.Services;
 using System.IO;
@@ -12,24 +13,29 @@ using static System.IO.File;
 namespace MyCoreWebApiCityInfo.Controllers;
 
 [Route("api/[controller]"), ApiController]
-public class CitiesController(CitiesDataStore __cds) : ControllerBase
+public class CitiesController(ICityInfoRepository __cityInfoRepository) : ControllerBase
 {
-    readonly CitiesDataStore _citiesDataStore = __cds ?? throw new ArgumentNullException(nameof(__cds));
+    readonly ICityInfoRepository _ciRepo = __cityInfoRepository ?? throw new ArgumentNullException(nameof(__cityInfoRepository));
+
     [HttpGet]
-    public ActionResult<IEnumerable<CityDto>> GetCities()
+    public async Task<ActionResult<IEnumerable<CityWithoutPoiDto>>> GetCities()
     {
-        List<CityDto> cities = _citiesDataStore.Cities;
+        List<CityWithoutPoiDto> result = [];
+        await foreach(City? city in _ciRepo.GetCities())
+        {
+            result.Add((CityWithoutPoiDto) city);
+        }
 
-        return cities.Count is 0 ? NoContent() : Ok(cities);
+        return result.Count > 0 ? Ok(result) : NoContent();
     }
 
-    [HttpGet("{id}")]
-    public ActionResult<CityDto> GetCity(int id)
-    {
-        CityDto? result = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == id);
+    //[HttpGet("{id}")]
+    //public ActionResult<CityDto> GetCity(int id)
+    //{
+    //    CityDto? result = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == id);
 
-        return result is null ? NotFound("404 city not found") : Ok(result);
-    }
+    //    return result is null ? NotFound("404 city not found") : Ok(result);
+    //}
 }
 
 [Route("api/[controller]"), ApiController]

@@ -1,6 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MyCoreWebApiCityInfo.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace MyCoreWebApiCityInfo.Models;
+
+public class CityWithoutPoiDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+
+    public static explicit operator CityWithoutPoiDto(City cityDto) => new()
+    {
+        Id = cityDto.Id,
+        Name = cityDto.Name,
+        Description = cityDto.Description
+    };
+}
 
 public class CityDto
 {
