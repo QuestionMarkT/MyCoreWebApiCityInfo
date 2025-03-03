@@ -95,7 +95,7 @@ public class PointsOfInterestController(
     readonly IMail _mailSrv = localMail ??
         throw new ArgumentNullException(nameof(localMail));
 
-    readonly ICityInfoRepository _citiesDataStore = __cds ??
+    readonly ICityInfoRepository _citiesDatabase = __cds ??
         throw new ArgumentNullException(nameof(__cds));
 
     const string poiRoute = nameof(GetPointOfInterest);
@@ -103,7 +103,7 @@ public class PointsOfInterestController(
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PointOfInterest>>> GetPointsOfInterest(int cityId)
     {
-        if(!await _citiesDataStore.CityExists(cityId))
+        if(!await _citiesDatabase.CityExists(cityId))
         {
             //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
             _logger.LogInformation("City ID {cityId} wasn't found when accessing points of interest.", cityId);
@@ -112,7 +112,7 @@ public class PointsOfInterestController(
 
         List<PointOfInterest> result = [];
         
-        await foreach(PointOfInterestDBEntity poiDbEnt in _citiesDataStore.GetPointsOfInterestsForCity(cityId))
+        await foreach(PointOfInterestDBEntity poiDbEnt in _citiesDatabase.GetPointsOfInterestsForCity(cityId))
             result.Add(poiDbEnt);
 
         return Ok(result);
@@ -124,7 +124,7 @@ public class PointsOfInterestController(
         if(!ModelState.IsValid)
             return BadRequest();
 
-        PointOfInterestDBEntity? poiDbEnt = await _citiesDataStore.GetPointOfInterestForCity(cityId, pointOfInterestId);
+        PointOfInterestDBEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, pointOfInterestId);
 
         if(poiDbEnt is null)
             return NotFound("404 point of interest or city not found");
@@ -132,38 +132,32 @@ public class PointsOfInterestController(
         return Ok((PointOfInterest)poiDbEnt);
     }
 
-    /* FIXING SKIPPED IN THE COURSE
     [HttpPost]
-    public ActionResult<PointOfInterest> CreatePointOfInterest(int cityId, [FromBody] PointOfInterestForCreatonDto poi)
+    public async Task<ActionResult<PointOfInterest>> CreatePointOfInterest(int cityId, [FromBody] PointOfInterestForCreatonDto poiForCreation)
     {
-        City? city = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
-
-        if(city is null)
+        if(!await _citiesDatabase.CityExists(cityId))
             return NotFound();
 
-        int maxPointOfInterestId = _citiesDataStore.Cities.SelectMany(x => x.PointsOfInterest).Max(x => x.Id); // a temporary solution that will stay here for good
+        PointOfInterestDBEntity poiDbEnt = poiForCreation;
 
-        PointOfInterest newPoint = new()
-        {
-            Id = ++maxPointOfInterestId,
-            Name = poi.Name,
-            Description = poi.Description
-        };
+        await _citiesDatabase.AddPointOfInterestForCity(cityId, poiDbEnt);
+        await _citiesDatabase.SaveChanges();
 
-        city.PointsOfInterest.Add(newPoint);
+        PointOfInterest poi = poiDbEnt;
+
         return CreatedAtRoute(poiRoute,
             new
             {
                 cityId,
-                pointOfInterestId = newPoint.Id
+                pointOfInterestId = poi.Id
             },
-            newPoint);
+            poi);
     }
 
-    [HttpPut($"{{{nameof(poiIdFromUser)}}}")]
+    /*[HttpPut($"{{{nameof(poiIdFromUser)}}}")]
     public ActionResult UpdatePointOfInterest(int cityId, int poiIdFromUser, PointOfInterestForUpdateDto poiFromUser)
     {
-        City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+        City? city = _citiesDatabase.Cities.FirstOrDefault(x => x.Id == cityId);
         if(city is null)
             return NotFound("404 city not found");
 
@@ -180,7 +174,7 @@ public class PointsOfInterestController(
     [HttpPatch($"{{{nameof(poiId)}}}")]
     public ActionResult PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
     {
-        City? city = _citiesDataStore.Cities.FirstOrDefault(x => x.Id == cityId);
+        City? city = _citiesDatabase.Cities.FirstOrDefault(x => x.Id == cityId);
         if(city is null)
             return NotFound($"city ID {cityId} not found");
 
@@ -215,7 +209,7 @@ public class PointsOfInterestController(
     [HttpDelete($"{{{nameof(poiId)}}}")]
     public IActionResult DeletePointOfInterest(int cityId, int poiId)
     {
-        City? cityDto = _citiesDataStore.Cities.FirstOrDefault(c => c.Id == cityId);
+        City? cityDto = _citiesDatabase.Cities.FirstOrDefault(c => c.Id == cityId);
         if(cityDto is null)
             return NotFound();
         

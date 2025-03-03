@@ -16,7 +16,6 @@ public class CityWithoutPoi
         Description = cityDto.Description
     };
 }
-
 public class City
 {
     public int Id { get; set; }
@@ -50,10 +49,15 @@ public class PointOfInterestForUpdateDto
 }
 public class PointOfInterestForCreatonDto
 {
-    [Required(ErrorMessage = "Name is required"), MaxLength(50)] // https://docs.fluentvalidation.net/en/latest/ for more advanced input validation
+    [Required(ErrorMessage = "Name is required"), MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     [MaxLength(200)]
     public string? Description { get; set; }
+
+    public static implicit operator PointOfInterestDBEntity(PointOfInterestForCreatonDto poiForCreation) => new(poiForCreation.Name)
+    {
+        Description = poiForCreation.Description
+    };
 }
 public class PointOfInterest
 {
@@ -66,5 +70,11 @@ public class PointOfInterest
         Id = dbEnt.Id,
         Name = dbEnt.Name,
         Description = dbEnt.Description
+    };
+
+    public static implicit operator PointOfInterest(PointOfInterestForCreatonDto poiForCreation) => new()
+    {
+        Name = poiForCreation.Name,
+        Description = poiForCreation.Description
     };
 }

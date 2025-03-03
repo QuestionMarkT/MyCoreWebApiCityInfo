@@ -9,10 +9,12 @@ namespace MyCoreWebApiCityInfo.Services;
 public interface ICityInfoRepository
 {
     IAsyncEnumerable<CityDbEntity> GetCities();
-    Task<CityDbEntity?> GetCity(int cityId, bool includePoi);
+    Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false);
+    Task<bool> CityExists(int cityId);
     IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId);
     Task<PointOfInterestDBEntity?> GetPointOfInterestForCity(int cityId, int poiId);
-    Task<bool> CityExists(int cityId);
+    Task AddPointOfInterestForCity(int cityId, PointOfInterestDBEntity poiDbEntity);
+    Task<bool> SaveChanges();
 }
 
 public interface IMail
@@ -26,7 +28,7 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
 
     public IAsyncEnumerable<CityDbEntity> GetCities() => _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
 
-    public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi)
+    public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false)
     {
         if(includePoi)
             return await _context.Cities
@@ -48,6 +50,10 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
         .AsAsyncEnumerable();
 
     public async Task<bool> CityExists(int cityId) => await _context.Cities.AnyAsync(x => x.Id == cityId);
+
+    public async Task AddPointOfInterestForCity(int cityId, PointOfInterestDBEntity poiDbEntity) => (await GetCity(cityId))?.PointsOfInterest.Add(poiDbEntity);
+
+    public async Task<bool> SaveChanges() => await _context.SaveChangesAsync() >= 0;
 }
 
 public class LocalMail(IConfiguration config) : IMail
