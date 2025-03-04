@@ -45,7 +45,13 @@ public class PointOfInterestForUpdateDto
     [Required(ErrorMessage = "Name is required"), MaxLength(50)]
     public string Name { get; set; } = string.Empty;
     [MaxLength(200)]
-    public string? Description { get; set; }    
+    public string? Description { get; set; }
+
+    public static implicit operator PointOfInterestForUpdateDto(PointOfInterestDbEntity poiDbEnt) => new()
+    {
+        Name = poiDbEnt.Name,
+        Description = poiDbEnt.Description
+    };
 }
 public class PointOfInterestForCreatonDto
 {
@@ -54,7 +60,7 @@ public class PointOfInterestForCreatonDto
     [MaxLength(200)]
     public string? Description { get; set; }
 
-    public static implicit operator PointOfInterestDBEntity(PointOfInterestForCreatonDto poiForCreation) => new(poiForCreation.Name)
+    public static implicit operator PointOfInterestDbEntity(PointOfInterestForCreatonDto poiForCreation) => new(poiForCreation.Name)
     {
         Description = poiForCreation.Description
     };
@@ -65,7 +71,7 @@ public class PointOfInterest
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    public static implicit operator PointOfInterest(PointOfInterestDBEntity dbEnt) => new()
+    public static implicit operator PointOfInterest(PointOfInterestDbEntity dbEnt) => new()
     {
         Id = dbEnt.Id,
         Name = dbEnt.Name,

@@ -84,10 +84,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
 }
 
 [Route("api/cities/{cityId}/[controller]"), ApiController]
-public class PointsOfInterestController(
-    ILogger<PointsOfInterestController> logger,
-    IMail localMail,
-    ICityInfoRepository __cds) : ControllerBase
+public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
     readonly ILogger<PointsOfInterestController> _logger = logger ??
         throw new ArgumentNullException(nameof(logger));
@@ -99,6 +96,7 @@ public class PointsOfInterestController(
         throw new ArgumentNullException(nameof(__cds));
 
     const string poiRoute = nameof(GetPointOfInterest);
+
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PointOfInterest>>> GetPointsOfInterest(int cityId)
@@ -112,7 +110,7 @@ public class PointsOfInterestController(
 
         List<PointOfInterest> result = [];
         
-        await foreach(PointOfInterestDBEntity poiDbEnt in _citiesDatabase.GetPointsOfInterestsForCity(cityId))
+        await foreach(PointOfInterestDbEntity poiDbEnt in _citiesDatabase.GetPointsOfInterestsForCity(cityId))
             result.Add(poiDbEnt);
 
         return Ok(result);
@@ -124,7 +122,7 @@ public class PointsOfInterestController(
         if(!ModelState.IsValid)
             return BadRequest();
 
-        PointOfInterestDBEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, pointOfInterestId);
+        PointOfInterestDbEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, pointOfInterestId);
 
         if(poiDbEnt is null)
             return NotFound("404 point of interest or city not found");
@@ -138,7 +136,7 @@ public class PointsOfInterestController(
         if(!await _citiesDatabase.CityExists(cityId))
             return NotFound();
 
-        PointOfInterestDBEntity poiDbEnt = poiForCreation;
+        PointOfInterestDbEntity poiDbEnt = poiForCreation;
 
         await _citiesDatabase.AddPointOfInterestForCity(cityId, poiDbEnt);
         await _citiesDatabase.SaveChanges();
@@ -161,7 +159,7 @@ public class PointsOfInterestController(
         if(!await _citiesDatabase.CityExists(cityId))
             return NotFound($"404 city {cityId} not found");
 
-        PointOfInterestDBEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, poiIdFromUser);
+        PointOfInterestDbEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, poiIdFromUser);
 
         if(poiDbEnt is null)
             return NotFound($"404 point of interest for city ID {cityId} not found");
@@ -173,42 +171,32 @@ public class PointsOfInterestController(
         return NoContent();
     }
 
-    /*[HttpPatch($"{{{nameof(poiId)}}}")]
-    public ActionResult PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
+    [HttpPatch($"{{{nameof(poiId)}}}")]
+    public async Task<ActionResult> PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
     {
-        City? city = _citiesDatabase.Cities.FirstOrDefault(x => x.Id == cityId);
-        if(city is null)
-            return NotFound($"city ID {cityId} not found");
+        if(!await _citiesDatabase.CityExists(cityId))
+            return NotFound($"404 city ID {cityId} not found");
 
-        PointOfInterest? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
-        if(poiFromMemory is null)
-            return NotFound($"point of interest of ID {poiId} not found");
+        PointOfInterestDbEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, poiId);
+        if(poiDbEnt is null)
+            return NotFound($"404 point of interest ID {poiId} not found");
 
-        PointOfInterestForUpdateDto poiToPatch = new()
-        {
-            Name = poiFromMemory.Name,
-            Description = poiFromMemory.Description
-        };
-
+        PointOfInterestForUpdateDto poiToPatch = poiDbEnt;
         patchDocument.ApplyTo(poiToPatch, ModelState);
 
         if(!ModelState.IsValid)
-        {
             return BadRequest(ModelState);
-        }
 
         if(!TryValidateModel(poiToPatch))
-        {
             return BadRequest(ModelState);
-        }
 
-        poiFromMemory.Name = poiToPatch.Name;
-        poiFromMemory.Description = poiToPatch.Description;
+        poiDbEnt.Update(poiToPatch);
+        await _citiesDatabase.SaveChanges();
 
-        return NoContent();
+        return NoContent(); // 204 success
     }
 
-    [HttpDelete($"{{{nameof(poiId)}}}")]
+    /*[HttpDelete($"{{{nameof(poiId)}}}")]
     public IActionResult DeletePointOfInterest(int cityId, int poiId)
     {
         City? cityDto = _citiesDatabase.Cities.FirstOrDefault(c => c.Id == cityId);

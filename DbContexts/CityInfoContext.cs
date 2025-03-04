@@ -8,7 +8,7 @@ public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbCont
     //readonly IConfiguration configuration = _config ?? throw new ArgumentNullException(nameof(_config));
     public DbSet<CityDbEntity> Cities { get; set; }
     
-    public DbSet<PointOfInterestDBEntity> PointsOfInterest { get; set; }
+    public DbSet<PointOfInterestDbEntity> PointsOfInterest { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,7 +30,7 @@ public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbCont
                 Description = "The one with that big tower."
             });
 
-        modelBuilder.Entity<PointOfInterestDBEntity>()
+        modelBuilder.Entity<PointOfInterestDbEntity>()
             .HasData(
             new("Central Park")
             {

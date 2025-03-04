@@ -11,9 +11,9 @@ public interface ICityInfoRepository
     IAsyncEnumerable<CityDbEntity> GetCities();
     Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false);
     Task<bool> CityExists(int cityId);
-    IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId);
-    Task<PointOfInterestDBEntity?> GetPointOfInterestForCity(int cityId, int poiId);
-    Task AddPointOfInterestForCity(int cityId, PointOfInterestDBEntity poiDbEntity);
+    IAsyncEnumerable<PointOfInterestDbEntity> GetPointsOfInterestsForCity(int cityId);
+    Task<PointOfInterestDbEntity?> GetPointOfInterestForCity(int cityId, int poiId);
+    Task AddPointOfInterestForCity(int cityId, PointOfInterestDbEntity poiDbEntity);
     Task<bool> SaveChanges();
 }
 
@@ -24,7 +24,8 @@ public interface IMail
 
 public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
 {
-    readonly CityInfoContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    readonly CityInfoContext _context = context ??
+        throw new ArgumentNullException(nameof(context));
 
     public IAsyncEnumerable<CityDbEntity> GetCities() => _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
 
@@ -41,17 +42,17 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
                 .FirstOrDefaultAsync();
     }
 
-    public async Task<PointOfInterestDBEntity?> GetPointOfInterestForCity(int cityId, int poiId) => await _context.PointsOfInterest
-            .Where(x => x.CityId == cityId && x.Id == poiId)
-            .FirstOrDefaultAsync();
+    public async Task<PointOfInterestDbEntity?> GetPointOfInterestForCity(int cityId, int poiId) => await _context.PointsOfInterest
+        .Where(x => x.CityId == cityId && x.Id == poiId)
+        .FirstOrDefaultAsync();
 
-    public IAsyncEnumerable<PointOfInterestDBEntity> GetPointsOfInterestsForCity(int cityId) => _context.PointsOfInterest
+    public IAsyncEnumerable<PointOfInterestDbEntity> GetPointsOfInterestsForCity(int cityId) => _context.PointsOfInterest
         .Where(x => x.City != null && x.City.Id == cityId)
         .AsAsyncEnumerable();
 
     public async Task<bool> CityExists(int cityId) => await _context.Cities.AnyAsync(x => x.Id == cityId);
 
-    public async Task AddPointOfInterestForCity(int cityId, PointOfInterestDBEntity poiDbEntity) => (await GetCity(cityId))?.PointsOfInterest.Add(poiDbEntity);
+    public async Task AddPointOfInterestForCity(int cityId, PointOfInterestDbEntity poiDbEntity) => (await GetCity(cityId))?.PointsOfInterest.Add(poiDbEntity);
 
     public async Task<bool> SaveChanges() => await _context.SaveChangesAsync() >= 0;
 }
