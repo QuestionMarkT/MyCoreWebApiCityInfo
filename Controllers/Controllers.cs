@@ -142,6 +142,7 @@ public class PointsOfInterestController(
 
         await _citiesDatabase.AddPointOfInterestForCity(cityId, poiDbEnt);
         await _citiesDatabase.SaveChanges();
+        
 
         PointOfInterest poi = poiDbEnt;
 
@@ -154,24 +155,25 @@ public class PointsOfInterestController(
             poi);
     }
 
-    /*[HttpPut($"{{{nameof(poiIdFromUser)}}}")]
-    public ActionResult UpdatePointOfInterest(int cityId, int poiIdFromUser, PointOfInterestForUpdateDto poiFromUser)
+    [HttpPut($"{{{nameof(poiIdFromUser)}}}")]
+    public async Task<ActionResult> UpdatePointOfInterest(int cityId, int poiIdFromUser, PointOfInterestForUpdateDto poiFromUser)
     {
-        City? city = _citiesDatabase.Cities.FirstOrDefault(x => x.Id == cityId);
-        if(city is null)
-            return NotFound("404 city not found");
+        if(!await _citiesDatabase.CityExists(cityId))
+            return NotFound($"404 city {cityId} not found");
 
-        PointOfInterest? poiFromMemory = city.PointsOfInterest.FirstOrDefault(x => x.Id == poiIdFromUser);
-        if(poiFromMemory is null)
-            return NotFound("404 point of interest not found");
+        PointOfInterestDBEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, poiIdFromUser);
 
-        poiFromMemory.Name = poiFromUser.Name;
-        poiFromMemory.Description = poiFromUser.Description;
+        if(poiDbEnt is null)
+            return NotFound($"404 point of interest for city ID {cityId} not found");
+
+        poiDbEnt.Description = poiFromUser.Description;
+        poiDbEnt.Name = poiFromUser.Name;
+        await _citiesDatabase.SaveChanges();
 
         return NoContent();
     }
 
-    [HttpPatch($"{{{nameof(poiId)}}}")]
+    /*[HttpPatch($"{{{nameof(poiId)}}}")]
     public ActionResult PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
     {
         City? city = _citiesDatabase.Cities.FirstOrDefault(x => x.Id == cityId);
