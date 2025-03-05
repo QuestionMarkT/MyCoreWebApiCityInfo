@@ -8,12 +8,13 @@ namespace MyCoreWebApiCityInfo.Services;
 
 public interface ICityInfoRepository
 {
-    IAsyncEnumerable<CityDbEntity> GetCities();
+    IAsyncEnumerable<CityDbEntity> GetCities(string? name = "");
     Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false);
     Task<bool> CityExists(int cityId);
     IAsyncEnumerable<PointOfInterestDbEntity> GetPointsOfInterestsForCity(int cityId);
     Task<PointOfInterestDbEntity?> GetPointOfInterestForCity(int cityId, int poiId);
     Task AddPointOfInterestForCity(int cityId, PointOfInterestDbEntity poiDbEntity);
+    void DeletePointOfInterest(PointOfInterestDbEntity poi);
     Task<bool> SaveChanges();
 }
 
@@ -27,7 +28,16 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
     readonly CityInfoContext _context = context ??
         throw new ArgumentNullException(nameof(context));
 
-    public IAsyncEnumerable<CityDbEntity> GetCities() => _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
+    public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "")
+    {
+        if(string.IsNullOrWhiteSpace(name))
+            return _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
+
+        return _context.Cities
+            .Where(x => x.Name == name.Trim())
+            .OrderBy(x => x.Name)
+            .AsAsyncEnumerable();
+    }
 
     public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false)
     {
@@ -55,6 +65,8 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
     public async Task AddPointOfInterestForCity(int cityId, PointOfInterestDbEntity poiDbEntity) => (await GetCity(cityId))?.PointsOfInterest.Add(poiDbEntity);
 
     public async Task<bool> SaveChanges() => await _context.SaveChangesAsync() >= 0;
+
+    public void DeletePointOfInterest(PointOfInterestDbEntity poi) => _context.PointsOfInterest.Remove(poi);
 }
 
 public class LocalMail(IConfiguration config) : IMail

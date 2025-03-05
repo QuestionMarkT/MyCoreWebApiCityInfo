@@ -1,13 +1,13 @@
 ﻿using MyCoreWebApiCityInfo.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace MyCoreWebApiCityInfo.DbContexts;
 
-public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbContext(options)
+public class CityInfoContext(DbContextOptions<CityInfoContext> options, IConfiguration _config) : DbContext(options)
 {
-    //readonly IConfiguration configuration = _config ?? throw new ArgumentNullException(nameof(_config));
+    readonly IConfiguration configuration = _config ?? throw new ArgumentNullException(nameof(_config));
     public DbSet<CityDbEntity> Cities { get; set; }
-    
     public DbSet<PointOfInterestDbEntity> PointsOfInterest { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -77,8 +77,7 @@ public class CityInfoContext(DbContextOptions<CityInfoContext> options) : DbCont
     {
         if(optionsBuilder.IsConfigured)
             Console.WriteLine("Connection string is already configured");
-        
-        //else
-        //    optionsBuilder.UseSqlite(configuration.GetConnectionString("CityInfoDBConnectionString"));
+        else
+            optionsBuilder.UseSqlite(configuration.GetConnectionString("CityInfoDBConnectionString"));
     }
 }

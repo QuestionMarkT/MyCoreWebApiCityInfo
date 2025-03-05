@@ -19,11 +19,11 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
         throw new ArgumentNullException(nameof(__cityInfoRepository));
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CityWithoutPoi>>> GetCities()
+    public async Task<ActionResult<IEnumerable<CityWithoutPoi>>> GetCities([FromQuery(Name = "name")] string? cityNameFromUser)
     {
         List<CityWithoutPoi> result = [];
 
-        await foreach(CityDbEntity? city in _ciRepo.GetCities())
+        await foreach(CityDbEntity? city in _ciRepo.GetCities(cityNameFromUser))
             result.Add((CityWithoutPoi) city);
         
         return result.Count > 0 ? Ok(result) : NoContent();
@@ -86,6 +86,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
 [Route("api/cities/{cityId}/[controller]"), ApiController]
 public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
+    #region fields
     readonly ILogger<PointsOfInterestController> _logger = logger ??
         throw new ArgumentNullException(nameof(logger));
 
@@ -96,8 +97,9 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
         throw new ArgumentNullException(nameof(__cds));
 
     const string poiRoute = nameof(GetPointOfInterest);
+    #endregion
 
-
+    #region methods
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PointOfInterest>>> GetPointsOfInterest(int cityId)
     {
@@ -196,19 +198,21 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
         return NoContent(); // 204 success
     }
 
-    /*[HttpDelete($"{{{nameof(poiId)}}}")]
-    public IActionResult DeletePointOfInterest(int cityId, int poiId)
+    [HttpDelete($"{{{nameof(poiId)}}}")]
+    public async Task<IActionResult> DeletePointOfInterest(int cityId, int poiId)
     {
-        City? cityDto = _citiesDatabase.Cities.FirstOrDefault(c => c.Id == cityId);
-        if(cityDto is null)
-            return NotFound();
-        
-        PointOfInterest? poiDtoFromMemory = cityDto.PointsOfInterest.FirstOrDefault(x => x.Id == poiId);
-        if(poiDtoFromMemory is null)
-            return NotFound();
+        if(!await _citiesDatabase.CityExists(cityId))
+            return NotFound($"404 city ID {cityId} not found");
 
-        cityDto.PointsOfInterest.Remove(poiDtoFromMemory);
-        _mailSrv.Send("Poi deleted", $"Point of interest {poiDtoFromMemory.Name} with id {poiDtoFromMemory.Id} has been deleted.");
+        PointOfInterestDbEntity? poiEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, poiId);
+        if(poiEnt is null)
+            return NotFound($"404 point of interest ID {poiId} not found");
+        
+        _citiesDatabase.DeletePointOfInterest(poiEnt);
+        await _citiesDatabase.SaveChanges();
+        
+        _mailSrv.Send("Poi deleted", $"Point of interest {poiEnt.Name} with id {poiEnt.Id} has been deleted.");
         return NoContent();
-    }*/
+    }
+    #endregion
 }

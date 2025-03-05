@@ -84,10 +84,7 @@ public class Program
             .AddTransient<IMail, CloudMail>()
 #endif
             .AddSingleton<CitiesDataStore>()
-            .AddDbContext<CityInfoContext>(opts =>
-            {
-                opts.UseSqlite(builder.Configuration.GetConnectionString("CityInfoDBConnectionString"));
-            })
+            .AddDbContext<CityInfoContext>()
             .AddScoped<ICityInfoRepository, CityInfoRepository>();
         
         using WebApplication app = builder.Build();
