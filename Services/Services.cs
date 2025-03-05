@@ -8,7 +8,7 @@ namespace MyCoreWebApiCityInfo.Services;
 
 public interface ICityInfoRepository
 {
-    IAsyncEnumerable<CityDbEntity> GetCities(string? name = "");
+    IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "");
     Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false);
     Task<bool> CityExists(int cityId);
     IAsyncEnumerable<PointOfInterestDbEntity> GetPointsOfInterestsForCity(int cityId);
@@ -25,18 +25,25 @@ public interface IMail
 
 public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
 {
-    readonly CityInfoContext _context = context ??
-        throw new ArgumentNullException(nameof(context));
+    const StringComparison sComp = StringComparison.OrdinalIgnoreCase;
+    readonly CityInfoContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "")
+    public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "")
     {
-        if(string.IsNullOrWhiteSpace(name))
+        if(string.IsNullOrWhiteSpace(name + search))
             return _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
 
-        return _context.Cities
-            .Where(x => x.Name == name.Trim())
-            .OrderBy(x => x.Name)
-            .AsAsyncEnumerable();
+        var collection = _context.Cities as IQueryable<CityDbEntity>;
+
+        if(!string.IsNullOrWhiteSpace(name))
+            collection = collection.Where(x => x.Name == name);
+
+        if(!string.IsNullOrWhiteSpace(search))
+            collection = collection.Where(x => 
+                x.Name.Contains(search, sComp) ||
+                (x.Description != null && x.Description.Contains(search, sComp)));
+
+        return collection.OrderBy(x => x.Name).AsAsyncEnumerable();
     }
 
     public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false)
@@ -79,7 +86,7 @@ public class LocalMail(IConfiguration config) : IMail
         string message = $"Mail from {_mailFrom} to {_mailTo} with {nameof(LocalMail)}{Environment.NewLine}";
         message += "Subject: " + subject + Environment.NewLine;
         message += "Message: " + body;
-
+        
         Console.WriteLine(message);
     }
 }

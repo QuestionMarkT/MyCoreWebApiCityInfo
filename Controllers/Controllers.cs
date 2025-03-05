@@ -19,13 +19,13 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
         throw new ArgumentNullException(nameof(__cityInfoRepository));
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CityWithoutPoi>>> GetCities([FromQuery(Name = "name")] string? cityNameFromUser)
+    public async Task<ActionResult<IEnumerable<CityWithoutPoi>>> GetCities([FromQuery(Name = "name")] string? cityNameFromUser, [FromQuery(Name = "search")] string? searchFromUser)
     {
         List<CityWithoutPoi> result = [];
 
-        await foreach(CityDbEntity? city in _ciRepo.GetCities(cityNameFromUser))
+        await foreach(CityDbEntity? city in _ciRepo.GetCities(cityNameFromUser, searchFromUser))
             result.Add((CityWithoutPoi) city);
-        
+
         return result.Count > 0 ? Ok(result) : NoContent();
     }
 
