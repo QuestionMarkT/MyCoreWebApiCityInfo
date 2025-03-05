@@ -25,7 +25,7 @@ public interface IMail
 
 public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
 {
-    const StringComparison sComp = StringComparison.OrdinalIgnoreCase;
+    //const StringComparison sComp = StringComparison.OrdinalIgnoreCase;
     readonly CityInfoContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "")
@@ -36,12 +36,12 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
         var collection = _context.Cities as IQueryable<CityDbEntity>;
 
         if(!string.IsNullOrWhiteSpace(name))
-            collection = collection.Where(x => x.Name == name);
+            collection = collection.Where(x => EF.Functions.Like(x.Name, $"{name}"));
 
         if(!string.IsNullOrWhiteSpace(search))
             collection = collection.Where(x => 
-                x.Name.Contains(search, sComp) ||
-                (x.Description != null && x.Description.Contains(search, sComp)));
+                EF.Functions.Like(x.Name, $"{name}") ||
+                (x.Description != null && EF.Functions.Like(x.Description, $"%{search}%")));
 
         return collection.OrderBy(x => x.Name).AsAsyncEnumerable();
     }

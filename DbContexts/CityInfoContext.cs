@@ -1,6 +1,7 @@
 ﻿using MyCoreWebApiCityInfo.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 
 namespace MyCoreWebApiCityInfo.DbContexts;
 
@@ -79,5 +80,6 @@ public class CityInfoContext(DbContextOptions<CityInfoContext> options, IConfigu
             Console.WriteLine("Connection string is already configured");
         else
             optionsBuilder.UseSqlite(configuration.GetConnectionString("CityInfoDBConnectionString"));
+        
     }
 }
