@@ -8,7 +8,7 @@ namespace MyCoreWebApiCityInfo.Services;
 
 public interface ICityInfoRepository
 {
-    IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "");
+    IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "", int pageNumber = 1, int pageSize = 25);
     Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false);
     Task<bool> CityExists(int cityId);
     IAsyncEnumerable<PointOfInterestDbEntity> GetPointsOfInterestsForCity(int cityId);
@@ -28,22 +28,23 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
     //const StringComparison sComp = StringComparison.OrdinalIgnoreCase;
     readonly CityInfoContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "")
+    public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "", int pageNumber = 1, int pageSize = 25)
     {
-        if(string.IsNullOrWhiteSpace(name + search))
-            return _context.Cities.OrderBy(x => x.Name).AsAsyncEnumerable();
-
         var collection = _context.Cities as IQueryable<CityDbEntity>;
 
         if(!string.IsNullOrWhiteSpace(name))
             collection = collection.Where(x => EF.Functions.Like(x.Name, $"{name}"));
-
+        
         if(!string.IsNullOrWhiteSpace(search))
             collection = collection.Where(x => 
                 EF.Functions.Like(x.Name, $"{name}") ||
                 (x.Description != null && EF.Functions.Like(x.Description, $"%{search}%")));
-
-        return collection.OrderBy(x => x.Name).AsAsyncEnumerable();
+        
+        return collection
+            .OrderBy(x => x.Name)
+            .Skip(pageSize * (pageNumber - 1))
+            .Take(pageSize)
+            .AsAsyncEnumerable();
     }
 
     public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false)
