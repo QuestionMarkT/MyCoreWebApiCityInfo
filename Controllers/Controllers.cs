@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using MyCoreWebApiCityInfo.Entities;
 using MyCoreWebApiCityInfo.Models;
 using MyCoreWebApiCityInfo.Services;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -225,4 +229,72 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
         return NoContent();
     }
     #endregion
+}
+
+[Route("api/[controller]"), ApiController]
+public class AuthenticationController(IConfiguration __config) : ControllerBase
+{
+    readonly IConfiguration _config = __config ?? throw new ArgumentNullException(nameof(__config));
+    
+    public class AuthenticationRequestBody
+    {
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+    }
+
+    class CityInfoUser(int userId, string username, string firstName, string lastName, string city)
+    {
+        public int UserId { get; set; } = userId;
+        public string Username { get; set; } = username;
+        public string FirstName { get; set; } = firstName;
+        public string LastName { get; set; } = lastName;
+        public string City { get; set; } = city;
+    }
+
+    [HttpPost(nameof(Authenticate))]
+    public ActionResult<string> Authenticate(AuthenticationRequestBody authReqBody)
+    {
+        CityInfoUser user = ValidateUserCredentials(authReqBody.Username, authReqBody.Password);
+        
+        if(user == null)
+            return Unauthorized();
+
+        string? authSecretFkey = _config["Authentication:SecretForKey"];
+        string? authIssuer = _config["Authentication:Issuer"];
+        string? authAudience = _config["Authentication:Audience"];
+
+        if(string.IsNullOrWhiteSpace(authIssuer) || 
+            string.IsNullOrWhiteSpace(authAudience) ||
+            string.IsNullOrWhiteSpace(authSecretFkey))
+        {
+            return StatusCode(500, "config null value");
+        }
+
+        SymmetricSecurityKey securityKey = new(Convert.FromBase64String(authSecretFkey));
+        SigningCredentials signingCredentials = new(securityKey, SecurityAlgorithms.HmacSha256);
+        Claim[] claimsForToken = 
+        [
+            new("sub", user.UserId.ToString()),
+            new("given_name", user.FirstName),
+            new("family_name", user.LastName),
+            new("city", user.City)
+        ];
+        
+        JwtSecurityToken jsonWebToken = new(
+            authIssuer,
+            authAudience,
+            claimsForToken,
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(30),
+            signingCredentials);
+
+        string tokenToReturn = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
+        return Ok(tokenToReturn);
+    }
+
+    CityInfoUser ValidateUserCredentials(string? username, string? password)
+    {
+        // no users database, assuming this comes from a DB
+        return new(1, username ?? "", "Kevin", "Dockx", "Antwerp");
+    }
 }
