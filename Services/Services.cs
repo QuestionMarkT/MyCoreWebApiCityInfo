@@ -8,7 +8,7 @@ namespace MyCoreWebApiCityInfo.Services;
 
 public interface ICityInfoRepository
 {
-    IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "", int pageNumber = 1, int pageSize = 25);
+    Task<(IAsyncEnumerable<CityDbEntity>, PaginationMetadata)> GetCities(string? name = "", string? search = "", int pageNumber = 1, int pageSize = 25);
     Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false);
     Task<bool> CityExists(int cityId);
     IAsyncEnumerable<PointOfInterestDbEntity> GetPointsOfInterestsForCity(int cityId);
@@ -28,7 +28,7 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
     //const StringComparison sComp = StringComparison.OrdinalIgnoreCase;
     readonly CityInfoContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public IAsyncEnumerable<CityDbEntity> GetCities(string? name = "", string? search = "", int pageNumber = 1, int pageSize = 25)
+    public async Task<(IAsyncEnumerable<CityDbEntity>, PaginationMetadata)> GetCities(string? name = "", string? search = "", int pageNumber = 1, int pageSize = 25)
     {
         var collection = _context.Cities as IQueryable<CityDbEntity>;
 
@@ -40,11 +40,14 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
                 EF.Functions.Like(x.Name, $"{name}") ||
                 (x.Description != null && EF.Functions.Like(x.Description, $"%{search}%")));
         
-        return collection
+        int totalItemCount = await collection.CountAsync();
+        PaginationMetadata pMeta = new(totalItemCount, pageSize, pageNumber);
+
+        return (collection
             .OrderBy(x => x.Name)
             .Skip(pageSize * (pageNumber - 1))
             .Take(pageSize)
-            .AsAsyncEnumerable();
+            .AsAsyncEnumerable(), pMeta);
     }
 
     public async Task<CityDbEntity?> GetCity(int cityId, bool includePoi = false)
@@ -105,4 +108,12 @@ public class CloudMail(IConfiguration config) : IMail
 
         Console.WriteLine(message);
     }
+}
+
+public class PaginationMetadata(int totalItemCount, int pageSize, int currentPage)
+{
+    public int TotalItemCount { get; set; } = totalItemCount;
+    public int TotalPageCount { get; set; } = (int) Math.Ceiling(totalItemCount / (double) pageSize);
+    public int PageSize { get; set; } = pageSize;
+    public int CurrentPage { get; set; } = currentPage;
 }

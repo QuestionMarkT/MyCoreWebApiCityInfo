@@ -6,6 +6,7 @@ using MyCoreWebApiCityInfo.Entities;
 using MyCoreWebApiCityInfo.Models;
 using MyCoreWebApiCityInfo.Services;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.IO.File;
@@ -27,8 +28,12 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
     {
         List<CityWithoutPoi> result = [];
         pageSizeFromUser = int.Clamp(pageSizeFromUser, 1, 100);
-        
-        await foreach(CityDbEntity? city in _ciRepo.GetCities(cityNameFromUser, searchFromUser, pageFromUser, pageSizeFromUser))
+
+        var (answer, pMeta) = await _ciRepo.GetCities(cityNameFromUser, searchFromUser, pageFromUser, pageSizeFromUser);
+
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pMeta));
+
+        await foreach(CityDbEntity? city in answer)
             result.Add((CityWithoutPoi) city);
 
         return result.Count > 0 ? Ok(result) : NoContent();
