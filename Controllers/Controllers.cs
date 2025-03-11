@@ -43,12 +43,12 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
 
         return result.Count > 0 ? Ok(result) : NoContent();
     }
-
+    
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCity(int id, [FromQuery] bool includePoi = false)
     {
         CityDbEntity? cityDbEntity =  await _ciRepo.GetCity(id, includePoi);
-
+        
         if(cityDbEntity is null)
             return NotFound("404 city not found");
         else if(includePoi)
@@ -118,6 +118,11 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PointOfInterest>>> GetPointsOfInterest(int cityId)
     {
+        string? cityName = User.Claims.FirstOrDefault(x => x.Type == "city")?.Value;
+        
+        if(!await _citiesDatabase.CityNameMatchesCityId(cityName, cityId))
+            return Forbid();
+
         if(!await _citiesDatabase.CityExists(cityId))
         {
             //Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, None = 6
@@ -292,6 +297,9 @@ public class AuthenticationController(IConfiguration __config) : ControllerBase
     static CityInfoUser ValidateUserCredentials(string? username, string? password)
     {
         // no users database, assuming this comes from a DB
-        return new(1, username ?? "", "Kevin", "Dockx", "Antwerp");
+        if(username == "KevinDockx" && password is not null && password.Contains("long"))
+            return new(1, username ?? "", "Kevin", "Dockx", "Antwerp");
+        else
+            return null!;
     }
 }

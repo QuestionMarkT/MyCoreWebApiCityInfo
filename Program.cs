@@ -94,7 +94,9 @@ public class Program
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero, // by default it's 5 minutes
                     ValidIssuer = builder.Configuration["Authentication:Issuer"],
                     ValidAudience = builder.Configuration["Authentication:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(builder.Configuration["Authentication:SecretForKey"] ?? throw new NullReferenceException("SecretForKey")))
@@ -102,7 +104,7 @@ public class Program
             });
         
         using WebApplication app = builder.Build();
-
+        
         if(!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler();

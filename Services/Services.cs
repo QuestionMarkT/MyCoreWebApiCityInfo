@@ -15,6 +15,7 @@ public interface ICityInfoRepository
     Task<PointOfInterestDbEntity?> GetPointOfInterestForCity(int cityId, int poiId);
     Task AddPointOfInterestForCity(int cityId, PointOfInterestDbEntity poiDbEntity);
     void DeletePointOfInterest(PointOfInterestDbEntity poi);
+    Task<bool> CityNameMatchesCityId(string? cityName, int cityId);
     Task<bool> SaveChanges();
 }
 
@@ -78,6 +79,8 @@ public class CityInfoRepository(CityInfoContext context) : ICityInfoRepository
     public async Task<bool> SaveChanges() => await _context.SaveChangesAsync() >= 0;
 
     public void DeletePointOfInterest(PointOfInterestDbEntity poi) => _context.PointsOfInterest.Remove(poi);
+
+    public async Task<bool> CityNameMatchesCityId(string? cityName, int cityId) => await _context.Cities.AnyAsync(x => x.Id == cityId && x.Name == cityName);
 }
 
 public class LocalMail(IConfiguration config) : IMail
