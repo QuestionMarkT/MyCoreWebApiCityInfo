@@ -38,6 +38,7 @@ namespace MyCoreWebApiCityInfo;
 
 public class Program
 {
+    public const string CityPolicy = "MustBeFromAntwerp";
     #region unrelated testing playground area
     static void DumbPlaygroundArea()
     {
@@ -101,6 +102,13 @@ public class Program
                     ValidAudience = builder.Configuration["Authentication:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(builder.Configuration["Authentication:SecretForKey"] ?? throw new NullReferenceException("SecretForKey")))
                 };
+            })
+            .Services
+            .AddAuthorizationBuilder()
+            .AddPolicy(CityPolicy, policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireClaim("city", "Antwerp");
             });
         
         using WebApplication app = builder.Build();

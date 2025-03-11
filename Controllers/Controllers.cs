@@ -98,7 +98,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     }
 }
 
-[Route("api/cities/{cityId}/[controller]"), ApiController, Authorize]
+[Route("api/cities/{cityId}/[controller]"), ApiController, Authorize(Program.CityPolicy)]
 public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
     #region fields
@@ -118,10 +118,11 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PointOfInterest>>> GetPointsOfInterest(int cityId)
     {
+        /* REPLACED WITH AUTHORIZE POLICY
         string? cityName = User.Claims.FirstOrDefault(x => x.Type == "city")?.Value;
         
         if(!await _citiesDatabase.CityNameMatchesCityId(cityName, cityId))
-            return Forbid();
+            return Forbid();*/
 
         if(!await _citiesDatabase.CityExists(cityId))
         {
@@ -287,7 +288,7 @@ public class AuthenticationController(IConfiguration __config) : ControllerBase
             authAudience,
             claimsForToken,
             DateTime.UtcNow,
-            DateTime.UtcNow.AddSeconds(30),
+            DateTime.UtcNow.AddMinutes(2),
             signingCredentials);
 
         string tokenToReturn = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
