@@ -32,6 +32,7 @@ using System.Runtime.Intrinsics.Wasm;
 using System.Runtime.Intrinsics.X86;
 using System.Dynamic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -85,7 +86,20 @@ public class Program
 #endif
             .AddSingleton<CitiesDataStore>()
             .AddDbContext<CityInfoContext>()
-            .AddScoped<ICityInfoRepository, CityInfoRepository>();
+            .AddScoped<ICityInfoRepository, CityInfoRepository>()
+            .AddAuthentication("Bearer")
+            .AddJwtBearer(opts =>
+            {
+                opts.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Authentication:Issuer"],
+                    ValidAudience = builder.Configuration["Authentication:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(builder.Configuration["Authentication:SecretForKey"] ?? throw new NullReferenceException("SecretForKey")))
+                };
+            });
         
         using WebApplication app = builder.Build();
 
@@ -101,6 +115,7 @@ public class Program
         
         app.UseHttpsRedirection();
         app.UseRouting();
+        app.UseAuthentication();
         app.UseAuthorization();
 #pragma warning disable ASP0014 // idk why but in the course it is at it is
         app.UseEndpoints(endpoints =>
@@ -114,5 +129,26 @@ public class Program
             await context.Response.WriteAsync("404 page not found :(");
         });
         app.Run();
+    }
+}
+
+public static class Exts
+{
+    /// <summary>
+    /// Shorthand for string.IsNullOrWhiteSpace()
+    /// </summary>
+    /// <param name="arg1">string to check for null or white space</param>
+    /// <param name="args">any additional strings to check</param>
+    /// <returns></returns>
+    public static bool IsNows(this string? arg1, params string?[] args)
+    {
+        if(string.IsNullOrWhiteSpace(arg1))
+            return true;
+
+        foreach(string? arg in args)
+            if(string.IsNullOrWhiteSpace(arg))
+                return true;
+
+        return false;
     }
 }

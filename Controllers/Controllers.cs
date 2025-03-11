@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +18,7 @@ using static System.IO.File;
 
 namespace MyCoreWebApiCityInfo.Controllers;
 
-[Route("api/[controller]"), ApiController]
+[Route("api/[controller]"), ApiController, Authorize]
 public class CitiesController(ICityInfoRepository __cityInfoRepository) : ControllerBase
 {
     readonly ICityInfoRepository _ciRepo = __cityInfoRepository ??
@@ -57,7 +58,7 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
     }
 }
 
-[Route("api/[controller]"), ApiController]
+[Route("api/[controller]"), ApiController, Authorize]
 public class FilesController(FileExtensionContentTypeProvider fectp) : ControllerBase
 {
     readonly FileExtensionContentTypeProvider _fectp = fectp ?? throw new ArgumentNullException(nameof(fectp) + " is null in FilesController class");
@@ -97,7 +98,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     }
 }
 
-[Route("api/cities/{cityId}/[controller]"), ApiController]
+[Route("api/cities/{cityId}/[controller]"), ApiController, Authorize]
 public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
     #region fields
@@ -250,27 +251,23 @@ public class AuthenticationController(IConfiguration __config) : ControllerBase
         public string LastName { get; set; } = lastName;
         public string City { get; set; } = city;
     }
-
+    
     [HttpPost(nameof(Authenticate))]
     public ActionResult<string> Authenticate(AuthenticationRequestBody authReqBody)
     {
         CityInfoUser user = ValidateUserCredentials(authReqBody.Username, authReqBody.Password);
         
-        if(user == null)
+        if(user is null)
             return Unauthorized();
-
+        
         string? authSecretFkey = _config["Authentication:SecretForKey"];
         string? authIssuer = _config["Authentication:Issuer"];
         string? authAudience = _config["Authentication:Audience"];
-
-        if(string.IsNullOrWhiteSpace(authIssuer) || 
-            string.IsNullOrWhiteSpace(authAudience) ||
-            string.IsNullOrWhiteSpace(authSecretFkey))
-        {
+        
+        if(authIssuer.IsNows(authAudience, authSecretFkey))
             return StatusCode(500, "config null value");
-        }
 
-        SymmetricSecurityKey securityKey = new(Convert.FromBase64String(authSecretFkey));
+        SymmetricSecurityKey securityKey = new(Convert.FromBase64String(authSecretFkey!));
         SigningCredentials signingCredentials = new(securityKey, SecurityAlgorithms.HmacSha256);
         Claim[] claimsForToken = 
         [
@@ -285,14 +282,14 @@ public class AuthenticationController(IConfiguration __config) : ControllerBase
             authAudience,
             claimsForToken,
             DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(30),
+            DateTime.UtcNow.AddSeconds(30),
             signingCredentials);
 
         string tokenToReturn = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
         return Ok(tokenToReturn);
     }
 
-    CityInfoUser ValidateUserCredentials(string? username, string? password)
+    static CityInfoUser ValidateUserCredentials(string? username, string? password)
     {
         // no users database, assuming this comes from a DB
         return new(1, username ?? "", "Kevin", "Dockx", "Antwerp");
