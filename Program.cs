@@ -109,7 +109,15 @@ public class Program
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireClaim("city", "Antwerp");
-            });
+            })
+            .Services
+            .AddApiVersioning(opts =>
+            {
+                opts.ReportApiVersions = true;
+                opts.AssumeDefaultVersionWhenUnspecified = true;
+                opts.DefaultApiVersion = new(1, 0);
+            })
+            .AddMvc();
         
         using WebApplication app = builder.Build();
         

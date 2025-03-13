@@ -288,7 +288,7 @@ public class AuthenticationController(IConfiguration __config) : ControllerBase
             authAudience,
             claimsForToken,
             DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(2),
+            DateTime.UtcNow.AddMinutes(20),
             signingCredentials);
 
         string tokenToReturn = new JwtSecurityTokenHandler().WriteToken(jsonWebToken);
