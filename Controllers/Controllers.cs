@@ -19,7 +19,9 @@ using static System.IO.File;
 
 namespace MyCoreWebApiCityInfo.Controllers;
 
-[Route("api/[controller]"), ApiController, Authorize, ApiVersion(1)]
+[Route("api/v{version:apiVersion}/[controller]"), ApiController]
+[Authorize]
+[ApiVersion(1)]
 public class CitiesController(ICityInfoRepository __cityInfoRepository) : ControllerBase
 {
     readonly ICityInfoRepository _ciRepo = __cityInfoRepository ??
@@ -59,12 +61,13 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
     }
 }
 
-[Route("api/[controller]"), ApiController, Authorize]
+[Route("api/v{version:apiVersion}/[controller]"), ApiController]
+[Authorize]
 public class FilesController(FileExtensionContentTypeProvider fectp) : ControllerBase
 {
     readonly FileExtensionContentTypeProvider _fectp = fectp ?? throw new ArgumentNullException(nameof(fectp) + " is null in FilesController class");
 
-    [HttpGet("{fileId}")]
+    [HttpGet($"{{{nameof(fileId)}}}")]
     [ApiVersion(0.1, Deprecated = true)]
     public ActionResult GetFile(string fileId)
     {
@@ -100,7 +103,9 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     }
 }
 
-[Route("api/cities/{cityId}/[controller]"), ApiController, Authorize(Program.CityPolicy), ApiVersion(2)]
+[Route("api/v{version:apiVersion}/cities/{cityId}/[controller]"), ApiController]
+[Authorize(Program.CityPolicy)]
+[ApiVersion(2)]
 public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
     #region fields
