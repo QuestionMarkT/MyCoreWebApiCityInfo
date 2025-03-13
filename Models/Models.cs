@@ -3,12 +3,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyCoreWebApiCityInfo.Models;
 
+/// <summary>
+/// A city without points of interest
+/// </summary>
 public class CityWithoutPoi
 {
+    /// <summary>
+    /// ID of the city
+    /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// The name of the city
+    /// </summary>
     public string Name { get; set; } = string.Empty;
+    /// <summary>
+    /// The description of the city
+    /// </summary>
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Map to city without points of interest
+    /// </summary>
+    /// <param name="cityDto">Database city entity</param>
     public static explicit operator CityWithoutPoi(CityDbEntity cityDto) => new()
     {
         Id = cityDto.Id,

@@ -33,6 +33,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Dynamic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IO;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -69,8 +70,16 @@ public class Program
             .AddNewtonsoftJson()
             .AddXmlDataContractSerializerFormatters()
             .Services
-            .AddEndpointsApiExplorer()
-            .AddSwaggerGen()
+            .AddEndpointsApiExplorer() // exposes available endpoints and how to interact with them, used by Swashbuckle to generate the OpenAPI specification
+            .AddSwaggerGen(opts => // registers services used for generating spec
+            {
+                string xmlCommentsFilePath = Path.Join(AppContext.BaseDirectory, "WebApiDocs.xml");
+
+                if(!File.Exists(xmlCommentsFilePath))
+                    throw new FileNotFoundException("WebApiDocs.xml wasn't found: " + xmlCommentsFilePath);
+
+                opts.IncludeXmlComments(xmlCommentsFilePath, true);
+            })
             .AddProblemDetails(options =>
             {
                 options.CustomizeProblemDetails = ctx =>
@@ -128,7 +137,8 @@ public class Program
         
         if(app.Environment.IsDevelopment())
         {
-            app.UseSwagger().UseSwaggerUI();
+            app.UseSwagger() // ensures the middleware for generating the OpenAPI specification is added
+                .UseSwaggerUI(); // ensures the middleware that uses that specification to generate the default SwaggerUI documentation URI gets added
         }
         
         app.UseHttpsRedirection();

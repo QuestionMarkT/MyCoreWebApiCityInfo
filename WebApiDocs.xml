@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MyCoreWebApiCityInfo</name>
+    </assembly>
+    <members>
+        <member name="M:MyCoreWebApiCityInfo.Controllers.CitiesController.GetCity(System.Int32,System.Boolean)">
+            <summary>
+            Get a city by ID
+            </summary>
+            <param name="id">ID of the city to get</param>
+            <param name="includePoi">Whether to include points of interest</param>
+            <returns>A city with(out) points of interests</returns>
+        </member>
+        <member name="T:MyCoreWebApiCityInfo.Migrations.CityInfoDBInitialMigration">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.CityInfoDBInitialMigration.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.CityInfoDBInitialMigration.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.CityInfoDBInitialMigration.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:MyCoreWebApiCityInfo.Migrations.CityInfoDBAddPOIDescription">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.CityInfoDBAddPOIDescription.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.CityInfoDBAddPOIDescription.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.CityInfoDBAddPOIDescription.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:MyCoreWebApiCityInfo.Migrations.InitialDataSeed">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.InitialDataSeed.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.InitialDataSeed.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Migrations.InitialDataSeed.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:MyCoreWebApiCityInfo.Models.CityWithoutPoi">
+            <summary>
+            A city without points of interest
+            </summary>
+        </member>
+        <member name="P:MyCoreWebApiCityInfo.Models.CityWithoutPoi.Id">
+            <summary>
+            ID of the city
+            </summary>
+        </member>
+        <member name="P:MyCoreWebApiCityInfo.Models.CityWithoutPoi.Name">
+            <summary>
+            The name of the city
+            </summary>
+        </member>
+        <member name="P:MyCoreWebApiCityInfo.Models.CityWithoutPoi.Description">
+            <summary>
+            The description of the city
+            </summary>
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Models.CityWithoutPoi.op_Explicit(MyCoreWebApiCityInfo.Entities.CityDbEntity)~MyCoreWebApiCityInfo.Models.CityWithoutPoi">
+            <summary>
+            Map to city without points of interest
+            </summary>
+            <param name="cityDto">Database city entity</param>
+        </member>
+        <member name="M:MyCoreWebApiCityInfo.Exts.IsNows(System.String,System.String[])">
+            <summary>
+            Shorthand for string.IsNullOrWhiteSpace()
+            </summary>
+            <param name="arg1">string to check for null or white space</param>
+            <param name="args">any additional strings to check</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

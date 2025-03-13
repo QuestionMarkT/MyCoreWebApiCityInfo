@@ -47,6 +47,12 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
         return result.Count > 0 ? Ok(result) : NoContent();
     }
     
+    /// <summary>
+    /// Get a city by ID
+    /// </summary>
+    /// <param name="id">ID of the city to get</param>
+    /// <param name="includePoi">Whether to include points of interest</param>
+    /// <returns>A city with(out) points of interests</returns>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCity(int id, [FromQuery] bool includePoi = false)
     {
