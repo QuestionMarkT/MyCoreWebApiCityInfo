@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.StaticFiles;
@@ -18,7 +19,7 @@ using static System.IO.File;
 
 namespace MyCoreWebApiCityInfo.Controllers;
 
-[Route("api/[controller]"), ApiController, Authorize]
+[Route("api/[controller]"), ApiController, Authorize, ApiVersion(1)]
 public class CitiesController(ICityInfoRepository __cityInfoRepository) : ControllerBase
 {
     readonly ICityInfoRepository _ciRepo = __cityInfoRepository ??
@@ -35,7 +36,7 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
         pageSizeFromUser = int.Clamp(pageSizeFromUser, 1, 100);
 
         var (answer, pMeta) = await _ciRepo.GetCities(cityNameFromUser, searchFromUser, pageFromUser, pageSizeFromUser);
-
+        
         Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pMeta));
 
         await foreach(CityDbEntity? city in answer)
@@ -64,6 +65,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     readonly FileExtensionContentTypeProvider _fectp = fectp ?? throw new ArgumentNullException(nameof(fectp) + " is null in FilesController class");
 
     [HttpGet("{fileId}")]
+    [ApiVersion(0.1, Deprecated = true)]
     public ActionResult GetFile(string fileId)
     {
 #if true
@@ -98,7 +100,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     }
 }
 
-[Route("api/cities/{cityId}/[controller]"), ApiController, Authorize(Program.CityPolicy)]
+[Route("api/cities/{cityId}/[controller]"), ApiController, Authorize(Program.CityPolicy), ApiVersion(2)]
 public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
     #region fields
