@@ -11,6 +11,7 @@
             <param name="id">ID of the city to get</param>
             <param name="includePoi">Whether to include points of interest</param>
             <returns>A city with(out) points of interests</returns>
+            <response code="200">Returns the requested city</response>
         </member>
         <member name="T:MyCoreWebApiCityInfo.Migrations.CityInfoDBInitialMigration">
             <inheritdoc />

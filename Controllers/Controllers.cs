@@ -36,7 +36,7 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
     {
         List<CityWithoutPoi> result = [];
         pageSizeFromUser = int.Clamp(pageSizeFromUser, 1, 100);
-
+        
         var (answer, pMeta) = await _ciRepo.GetCities(cityNameFromUser, searchFromUser, pageFromUser, pageSizeFromUser);
         
         Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pMeta));
@@ -53,7 +53,11 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
     /// <param name="id">ID of the city to get</param>
     /// <param name="includePoi">Whether to include points of interest</param>
     /// <returns>A city with(out) points of interests</returns>
+    /// <response code="200">Returns the requested city</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCity(int id, [FromQuery] bool includePoi = false)
     {
         CityDbEntity? cityDbEntity =  await _ciRepo.GetCity(id, includePoi);
