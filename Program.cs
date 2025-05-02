@@ -1,3 +1,4 @@
+#pragma warning disable CS1591 // missing XML comment for publicly visible type or member
 global using Microsoft.AspNetCore.Mvc;
 global using System;
 global using System.Collections;
@@ -34,6 +35,8 @@ using System.Dynamic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using Asp.Versioning.ApiExplorer;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -126,7 +129,27 @@ public class Program
                 opts.AssumeDefaultVersionWhenUnspecified = true;
                 opts.DefaultApiVersion = new(1, 0);
             })
-            .AddMvc();
+            .AddMvc()
+            .AddApiExplorer(setup =>
+            {
+                setup.SubstituteApiVersionInUrl = true;
+                //setup.GroupNameFormat = "'v'VVV";
+            });
+        
+        IApiVersionDescriptionProvider apiVersionDescriptionProvider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+
+        builder.Services.AddSwaggerGen(opts =>
+        {
+            foreach(ApiVersionDescription description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+            {
+                opts.SwaggerDoc(description.GroupName, new()
+                {
+                    Title = "City Info API",
+                    Version = description.ApiVersion.ToString(),
+                    Description = "Through this API you can access cities and their points of interest."
+                });
+            }
+        });
         
         using WebApplication app = builder.Build();
         
@@ -138,7 +161,16 @@ public class Program
         if(app.Environment.IsDevelopment())
         {
             app.UseSwagger() // ensures the middleware for generating the OpenAPI specification is added
-                .UseSwaggerUI(); // ensures the middleware that uses that specification to generate the default SwaggerUI documentation URI gets added
+                .UseSwaggerUI(setupAction =>
+                {
+                    IReadOnlyList<ApiVersionDescription> descriptions = app.DescribeApiVersions();
+
+                    foreach(ApiVersionDescription description in descriptions)
+                    {
+                        setupAction.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                        setupAction.RoutePrefix = string.Empty; // makes the Swagger UI available at the app's root URL
+                    }
+                }); // ensures the middleware that uses that specification to generate the default SwaggerUI documentation URI gets added
         }
         
         app.UseHttpsRedirection();
@@ -162,21 +194,23 @@ public class Program
 
 public static class Exts
 {
-    /// <summary>
-    /// Shorthand for string.IsNullOrWhiteSpace()
-    /// </summary>
-    /// <param name="arg1">string to check for null or white space</param>
-    /// <param name="args">any additional strings to check</param>
-    /// <returns></returns>
-    public static bool IsNows(this string? arg1, params string?[] args)
+    extension(string? arg1)
     {
-        if(string.IsNullOrWhiteSpace(arg1))
-            return true;
-
-        foreach(string? arg in args)
-            if(string.IsNullOrWhiteSpace(arg))
+        /// <summary>
+     /// Shorthand for string.IsNullOrWhiteSpace()
+     /// </summary>
+     /// <param name="args">additional strings to check</param>
+     /// <returns>true if it is</returns>
+        public bool IsNows(params string?[] args)
+        {
+            if(string.IsNullOrWhiteSpace(arg1))
                 return true;
 
-        return false;
+            foreach(string? arg in args)
+                if(string.IsNullOrWhiteSpace(arg))
+                    return true;
+
+            return false;
+        }
     }
 }

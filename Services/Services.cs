@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿#pragma warning disable CS1591
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MyCoreWebApiCityInfo.Entities;
 using MyCoreWebApiCityInfo.DbContexts;

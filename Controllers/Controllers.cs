@@ -1,4 +1,5 @@
-﻿using Asp.Versioning;
+﻿#pragma warning disable CS1591
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
@@ -12,6 +13,7 @@ using MyCoreWebApiCityInfo.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;

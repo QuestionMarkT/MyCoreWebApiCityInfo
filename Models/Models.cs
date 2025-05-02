@@ -1,4 +1,5 @@
-﻿using MyCoreWebApiCityInfo.Entities;
+﻿#pragma warning disable CS1591
+using MyCoreWebApiCityInfo.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCoreWebApiCityInfo.Models;
@@ -48,9 +49,8 @@ public class City
             Id = sourceCity.Id,
             Name = sourceCity.Name,
             Description = sourceCity.Description,
-            PointsOfInterest = sourceCity.PointsOfInterest
-                .Select(x => (PointOfInterest) x)
-                .ToArray()
+            PointsOfInterest = [..sourceCity.PointsOfInterest
+                .Select(x => (PointOfInterest) x)]
         };
 
         return castedCity;

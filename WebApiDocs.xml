@@ -75,13 +75,12 @@
             </summary>
             <param name="cityDto">Database city entity</param>
         </member>
-        <member name="M:MyCoreWebApiCityInfo.Exts.IsNows(System.String,System.String[])">
+        <member name="M:MyCoreWebApiCityInfo.Exts..IsNows(System.String[])">
             <summary>
             Shorthand for string.IsNullOrWhiteSpace()
             </summary>
-            <param name="arg1">string to check for null or white space</param>
-            <param name="args">any additional strings to check</param>
-            <returns></returns>
+            <param name="args">additional strings to check</param>
+            <returns>true if it is</returns>
         </member>
     </members>
 </doc>

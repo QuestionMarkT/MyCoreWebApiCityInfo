@@ -1,4 +1,5 @@
-﻿using MyCoreWebApiCityInfo.Models;
+﻿#pragma warning disable CS1591
+using MyCoreWebApiCityInfo.Models;
 
 namespace MyCoreWebApiCityInfo;
 
