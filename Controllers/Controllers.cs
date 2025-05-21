@@ -12,6 +12,7 @@ using MyCoreWebApiCityInfo.Models;
 using MyCoreWebApiCityInfo.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -21,9 +22,10 @@ using static System.IO.File;
 
 namespace MyCoreWebApiCityInfo.Controllers;
 
-[Route("api/v{version:apiVersion}/[controller]"), ApiController]
+[ApiController]
 [Authorize]
-[ApiVersion(1)]
+[ApiVersion(1), ApiVersion(2)]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class CitiesController(ICityInfoRepository __cityInfoRepository) : ControllerBase
 {
     readonly ICityInfoRepository _ciRepo = __cityInfoRepository ??
@@ -105,7 +107,7 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
         {
             return BadRequest("No file or an invalid one has been provided");
         }
-
+        
         string newFilePath = Path.Join(Directory.GetCurrentDirectory(), $"uploaded file {Guid.NewGuid()}.pdf");
         using FileStream fstream = new(newFilePath, FileMode.Create);
         CancellationTokenSource ct = new(TimeSpan.FromMinutes(5));
@@ -115,9 +117,10 @@ public class FilesController(FileExtensionContentTypeProvider fectp) : Controlle
     }
 }
 
-[Route("api/v{version:apiVersion}/cities/{cityId}/[controller]"), ApiController]
-[Authorize(Program.CityPolicy)]
+[ApiController]
+[Authorize(Policy = Program.CityPolicy)]
 [ApiVersion(2)]
+[Route("api/v{version:apiVersion}/cities/{cityId}/[controller]")]
 public class PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMail localMail, ICityInfoRepository __cds) : ControllerBase
 {
     #region fields
@@ -289,7 +292,7 @@ public class AuthenticationController(IConfiguration __config) : ControllerBase
         string? authIssuer = _config["Authentication:Issuer"];
         string? authAudience = _config["Authentication:Audience"];
         
-        if(authIssuer.IsNows(authAudience, authSecretFkey))
+        if(authIssuer!.IsNows(authAudience, authSecretFkey))
             return StatusCode(500, "config null value");
 
         SymmetricSecurityKey securityKey = new(Convert.FromBase64String(authSecretFkey!));

@@ -20,6 +20,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.OpenApi.Models;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -82,6 +83,27 @@ public class Program
                     throw new FileNotFoundException("WebApiDocs.xml wasn't found: " + xmlCommentsFilePath);
 
                 opts.IncludeXmlComments(xmlCommentsFilePath, true);
+
+                opts.AddSecurityDefinition("CityInfoApiBearerAuth", new()
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    Description = "Input a valid token to access this API"
+                });
+
+                opts.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    [
+                        new OpenApiSecurityScheme()
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "CityInfoApiBearerAuth"
+                            }
+                        }
+                    ] = []
+                });
             })
             .AddProblemDetails(options =>
             {
@@ -150,7 +172,7 @@ public class Program
                 });
             }
         });
-        
+
         using WebApplication app = builder.Build();
         
         if(!app.Environment.IsDevelopment())
