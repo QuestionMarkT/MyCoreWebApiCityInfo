@@ -81,6 +81,5 @@ public class CityInfoContext(DbContextOptions<CityInfoContext> options, IConfigu
             Console.WriteLine("Connection string is already configured");
         else
             optionsBuilder.UseSqlite(configuration.GetConnectionString("CityInfoDBConnectionString"));
-        
     }
 }

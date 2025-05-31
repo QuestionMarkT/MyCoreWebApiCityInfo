@@ -38,6 +38,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Asp.Versioning.ApiExplorer;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace MyCoreWebApiCityInfo;
 
@@ -173,13 +174,22 @@ public class Program
             }
         });
 
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+
         using WebApplication app = builder.Build();
         
         if(!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler();
         }
-        
+
+        app.UseForwardedHeaders(); // this middleware is used to forward headers from reverse proxies like Nginx or Apache, which is useful for things like HTTPS redirection and IP address logging
+
         if(app.Environment.IsDevelopment())
         {
             app.UseSwagger() // ensures the middleware for generating the OpenAPI specification is added

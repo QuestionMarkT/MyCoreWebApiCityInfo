@@ -54,17 +54,17 @@ public class CitiesController(ICityInfoRepository __cityInfoRepository) : Contro
     /// <summary>
     /// Get a city by ID
     /// </summary>
-    /// <param name="id">ID of the city to get</param>
+    /// <param name="cityId">ID of the city to get</param>
     /// <param name="includePoi">Whether to include points of interest</param>
     /// <returns>A city with(out) points of interests</returns>
     /// <response code="200">Returns the requested city</response>
-    [HttpGet("{id}")]
+    [HttpGet("{cityId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetCity(int id, [FromQuery] bool includePoi = false)
+    public async Task<IActionResult> GetCity(int cityId, [FromQuery] bool includePoi = false)
     {
-        CityDbEntity? cityDbEntity =  await _ciRepo.GetCity(id, includePoi);
+        CityDbEntity? cityDbEntity =  await _ciRepo.GetCity(cityId, includePoi);
         
         if(cityDbEntity is null)
             return NotFound("404 city not found");
@@ -220,20 +220,20 @@ public class PointsOfInterestController(ILogger<PointsOfInterestController> logg
     public async Task<ActionResult> PartiallyUpdatePointOfInterest(int cityId, int poiId, JsonPatchDocument<PointOfInterestForUpdateDto> patchDocument)
     {
         if(!await _citiesDatabase.CityExists(cityId))
-            return NotFound($"404 city ID {cityId} not found");
+            return NotFound($"404 city ID {cityId} not found"); // 404 not found
 
         PointOfInterestDbEntity? poiDbEnt = await _citiesDatabase.GetPointOfInterestForCity(cityId, poiId);
         if(poiDbEnt is null)
-            return NotFound($"404 point of interest ID {poiId} not found");
+            return NotFound($"404 point of interest ID {poiId} not found"); // 404 not found
 
         PointOfInterestForUpdateDto poiToPatch = poiDbEnt;
         patchDocument.ApplyTo(poiToPatch, ModelState);
 
         if(!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest(ModelState); // 400 bad request
 
         if(!TryValidateModel(poiToPatch))
-            return BadRequest(ModelState);
+            return BadRequest(ModelState); // 400 bad request
 
         poiDbEnt.Update(poiToPatch);
         await _citiesDatabase.SaveChanges();

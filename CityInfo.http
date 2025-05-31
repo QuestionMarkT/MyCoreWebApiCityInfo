@@ -1,0 +1,33 @@
+@schema=https
+@hostname=localhost
+@port=7047
+GET {{schema}}://{{hostname}}:{{port}}/api/v2/cities/1?includePoi=true
+
+###
+GET {{schema}}://{{hostname}}:{{port}}/api/v2/cities
+Accept: application/xml
+
+###
+@name createpoi
+POST {{schema}}://{{hostname}}:{{port}}/api/v2/cities/3/pointsofinterest
+Accept: application/json
+Content-Type: application/json
+{
+    "name": "A new name for testinggggg",
+    "description": "A new description for testingggggggg"
+}
+
+###
+// authenticated GET request
+GET {{schema}}://{{hostname}}:{{port}}/api/v2/cities
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZ2l2ZW5fbmFtZSI6IktldmluIiwiZmFtaWx5X25hbWUiOiJEb2NreCIsImNpdHkiOiJBbnR3ZXJwIiwibmJmIjoxNzQ4NTU2NjI3LCJleHAiOjE3NDg1NTc4MjcsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcwNDciLCJhdWQiOiJjaXR5aW5mb2FwaSJ9.1pMpi8MrQY_oJw9PaozbSt8dUc2Jw-STuFjElroMFtM
+
+
+###
+// authenticate
+POST {{schema}}://{{hostname}}:{{port}}/api/authentication/authenticate
+Content-Type: application/json
+{
+    "username": "KevinDockx",
+    "password" : "This is not a long password"
+}
